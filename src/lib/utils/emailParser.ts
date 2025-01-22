@@ -6,6 +6,8 @@ export async function parseEmail(rawEmail: string) {
 
   const { from, subject } = parsed;
 
+  console.log(parsed);
+
   if (!from) return null;
 
   return {

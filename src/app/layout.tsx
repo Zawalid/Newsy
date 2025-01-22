@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Roboto, Roboto_Mono } from "next/font/google";
 import "@/styles/globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
@@ -7,25 +7,26 @@ import TopLoader from "@/components/top-loader";
 import { Toaster } from "@/components/ui/sonner";
 import { LoaderCircle } from "lucide-react";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const roboto = Roboto({
+  variable: "--font-roboto",
   subsets: ["latin"],
+  weight: ["300","400", "500", "700", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const robotoMono = Roboto_Mono({
+  variable: "--font-roboto-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "QCMaker",
+  title: "Newsy",
   description: "Application for generating QCM",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${roboto.variable} ${robotoMono.variable} antialiased overflow-hidden`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

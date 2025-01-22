@@ -1,27 +1,44 @@
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from "google-auth-library";
+import fs from "fs/promises";
+import path from "path";
 
-const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
-
-export async function authorize(): Promise<OAuth2Client> {
-  const client = new OAuth2Client(
+export const createAuthClient = () => {
+  return new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
     process.env.GOOGLE_REDIRECT_URI
   );
+};
 
-  if (process.env.GOOGLE_REFRESH_TOKEN) {
-    client.setCredentials({
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-    });
-    return client;
+const TOKEN_FILE = path.join(process.cwd(), "tokens.json");
+
+async function loadTokensFromFile() {
+  try {
+    const fileContent = await fs.readFile(TOKEN_FILE, "utf-8");
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error("Error reading token file:", error);
+    return null;
+  }
+}
+
+export async function authorize() {
+  const tokens = await loadTokensFromFile();
+  if (!tokens?.refresh_token) {
+    throw new Error("User is not authenticated. Please authenticate first.");
   }
 
-  const authUrl = client.generateAuthUrl({
-    access_type: 'offline',
-    scope: SCOPES,
-  });
-  console.log('Authorize this app by visiting this url:', authUrl);
-  // After user authorizes, they will get a code which needs to be exchanged for tokens
-  // This part should be handled in a separate route to capture the code and exchange it
+  const client = createAuthClient();
+  client.setCredentials(tokens);
+
+  // Refresh the token if it's expired or missing
+  if (!client.credentials.access_token || Date.now() > (tokens.expiry_date || 0)) {
+    const { credentials } = await client.refreshAccessToken();
+    client.setCredentials(credentials);
+
+    // Save refreshed tokens back to file
+    await fs.writeFile(TOKEN_FILE, JSON.stringify(credentials, null, 2));
+  }
+
   return client;
 }

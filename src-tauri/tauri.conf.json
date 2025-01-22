@@ -9,7 +9,7 @@
   "bundle": {
     "active": true,
     "category": "Education",
-    "copyright": "© 2024 QCMaker",
+    "copyright": "© 2024 Newsy",
     "targets": ["msi"],
     "externalBin": [],
     "icon": [
@@ -40,10 +40,10 @@
       }
     }
   },
-  "productName": "QCMaker",
-  "mainBinaryName": "QCMaker",
+  "productName": "Newsy",
+  "mainBinaryName": "Newsy",
   "version": "0.1.0",
-  "identifier": "com.qcmaker.dev",
+  "identifier": "com.newsy.dev",
   "plugins": {},
   "app": {
     "windows": [
@@ -51,7 +51,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "QCMaker",
+        "title": "Newsy",
         "width": 800,
         "dragDropEnabled": false,
         "useHttpsScheme": true
