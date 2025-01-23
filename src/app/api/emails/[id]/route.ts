@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { authorize } from "@/lib/api/auth";
 import { getEmail } from "@/lib/api/emails";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const emailId = params.id;
+    const emailId = (await params).id;
 
-    if (!emailId) {
-      return NextResponse.json({ error: "Email ID is required." }, { status: 400 });
-    }
+    if (!emailId) return NextResponse.json({ error: "Email ID is required." }, { status: 400 });
 
     const client = await authorize();
     const email = await getEmail(client, emailId);

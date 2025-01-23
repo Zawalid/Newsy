@@ -38,3 +38,14 @@ export const usesTauri = () => {
 };
 
 export const sanitize = (html: string) => DOMPurify.sanitize(html);
+
+export const formatEmailText = (text: string) => {
+  const cleaned = text.replace(/(\r?\n){3,}/g, "\n\n");
+  const linked = cleaned.replace(
+    /(https?:\/\/[^\s]+)/g,
+    (url: string) =>
+      `<a href="${url}" class="text-blue-500 underline" target="_blank" rel="noopener noreferrer">${url}</a>`
+  );
+
+  return linked.replace(/(\s*https?:\/\/[^\s]+)/g, "\n$1\n");
+};

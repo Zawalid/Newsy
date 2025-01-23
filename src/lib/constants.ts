@@ -2,6 +2,8 @@ export const NEWS_LETTERS_EMAILS = [
   "tns@thenewstack.io",
   "noreply@medium.com",
   "team@today.getpocket.com",
+  "weekly@console.dev",
+  "informer@daily.dev",
 ];
 export const TECH_KEYWORDS = [
   "JavaScript",

@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import root from "react-shadow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { sanitize } from "@/lib/utils";
+import { formatEmailText, sanitize } from "@/lib/utils";
 
 export function EmailDisplay({ email }: { email: Email | null }) {
   return (
@@ -13,20 +13,28 @@ export function EmailDisplay({ email }: { email: Email | null }) {
         <div className="flex flex-1 flex-col">
           <div className="flex items-start p-4">
             <div className="flex items-start gap-4 text-sm">
-              <Avatar>
-                <AvatarImage alt={email.from?.[0].name} />
-                <AvatarFallback>
-                  {email.from?.[0].name
-                    .split(" ")
-                    .map((chunk) => chunk[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid gap-1">
-                <div className="font-bold">{email.from?.[0].name}</div>
-                <div className="line-clamp-1 font-medium text-xs">{email.subject}</div>
-                <div className="line-clamp-1 text-xs text-muted-foreground">
-                  <span className="font-medium">Reply-To:</span> {email.from?.[0].address}
+              <div className="grid gap-4">
+                <h3 className="font-medium text-xl">{email.subject}</h3>
+                <div className="flex items-center gap-3 ">
+                  <Avatar>
+                    <AvatarImage alt={email.from?.[0].name} />
+                    <AvatarFallback>
+                      {email.from?.[0].name
+                        .split(" ")
+                        .map((chunk) => chunk[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="">
+                    <div className="flex items-center gap-2">
+                      <p className="line-clamp-1 font-bold text-sm">{email.from?.[0].name}</p>
+                      <span className="font-medium">{`<${email.from?.[0].address}>`}</span>
+                    </div>
+                    <div className="line-clamp-1 text-muted-foreground text-xs">
+                      <span className="font-medium">To:</span>{" "}
+                      {email.to?.map((e) => e.address).join(", ")}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -37,21 +45,28 @@ export function EmailDisplay({ email }: { email: Email | null }) {
             )}
           </div>
           <Separator />
-
-          <root.div className="flex-1">
-            <div
-              dangerouslySetInnerHTML={{
-                __html:
-                  (email.body.html || "") ||
-                  sanitize(email.body.text || "") ||
-                  "<div class='text-muted'>No content</div>",
-              }}
-            />
-          </root.div>
+          <EmailBody body={email.body} />
         </div>
-      ) : (
-        <div className="p-8 text-center text-muted-foreground">No message selected</div>
-      )}
+      ) : null}
     </div>
   );
+}
+
+export default function EmailBody({ body }: { body: Email["body"] }) {
+  if (body.html)
+    return (
+      <root.div className="flex-1">
+        <div dangerouslySetInnerHTML={{ __html: sanitize( body.html) || "" }} />
+      </root.div>
+    );
+
+  if (body.text)
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: formatEmailText(body.text || "") }}
+        className="whitespace-pre-wrap break-words text-base text-muted-foreground leading-relaxed p-4"
+      ></div>
+    );
+
+  return <div className="text-muted-foreground">No content</div>;
 }

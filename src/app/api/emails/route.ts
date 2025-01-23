@@ -9,7 +9,7 @@ export async function GET() {
     (e) => `from:${e}`
   ).join(" ")}}`;
 
-  const emails = await listEmails(client, query, 3);
+  const emails = await listEmails(client, query, 10);
   const newsLetters = [...new Set(emails.map((e) => e.from?.[0].name))];
 
   return NextResponse.json({ newsLetters, emails });

@@ -11,7 +11,10 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider style={{ "--sidebar-width": "300px" } as React.CSSProperties}>
+    <SidebarProvider
+      defaultOpen={false}
+      style={{ "--sidebar-width": "300px" } as React.CSSProperties}
+    >
       <AppSidebar />
       <SidebarInset>
         <header className="flex border-b h-14 shrink-0 items-center gap-2">

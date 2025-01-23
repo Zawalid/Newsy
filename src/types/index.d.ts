@@ -9,7 +9,7 @@ declare global {
     isStarred: boolean;
     labels: string[];
     from: EmailAddress[] | undefined;
-    to: EmailAddress[] | EmailAddress[][] | undefined;
+    to: EmailAddress[]  | undefined;
     subject: string | undefined;
     date: Date | undefined;
     body: {

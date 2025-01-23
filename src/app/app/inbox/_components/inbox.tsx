@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search } from "lucide-react";
 import { EmailsList } from "./emails-list";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 interface EmailProps {
   emails: Email[];
@@ -14,16 +15,18 @@ interface EmailProps {
 }
 
 export default function Inbox({ emails, defaultLayout = [25, 75], children }: EmailProps) {
+  const [parent] = useAutoAnimate();
+
   return (
     <ResizablePanelGroup
       direction="horizontal"
       onLayout={(sizes: number[]) => {
         document.cookie = `react-resizable-panels:layout:email=${JSON.stringify(sizes)}`;
       }}
-      className="h-full max-h-[800px] items-stretch"
+      className="h-full max-h-[calc(100vh-56px)] items-stretch"
     >
       <ResizablePanel defaultSize={defaultLayout[0]} minSize={25}>
-        <Tabs defaultValue="all">
+        <Tabs className="h-full flex flex-col" defaultValue="all">
           <div className="px-4 py-2">
             <TabsList className="w-full ml-auto">
               <TabsTrigger value="all" className="w-full text-zinc-600 dark:text-zinc-200">
@@ -43,16 +46,16 @@ export default function Inbox({ emails, defaultLayout = [25, 75], children }: Em
               </div>
             </form>
           </div>
-          <TabsContent value="all" className="m-0">
-            <EmailsList emails={emails} />
+          <TabsContent value="all" className="flex-1 m-0" ref={parent}>
+            <EmailsList emails={emails} type="all" />
           </TabsContent>
-          <TabsContent value="unread" className="m-0">
-            <EmailsList emails={emails.filter((email) => !email.isRead)} />
+          <TabsContent value="unread" className="flex-1 m-0" ref={parent}>
+            <EmailsList emails={emails.filter(e => !e.isRead)} type="unread" />
           </TabsContent>
         </Tabs>
       </ResizablePanel>
       <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={defaultLayout[1]} minSize={40}>
+      <ResizablePanel defaultSize={defaultLayout[1]} minSize={40} className="border-b">
         {children}
       </ResizablePanel>
     </ResizablePanelGroup>

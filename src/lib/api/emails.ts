@@ -1,19 +1,16 @@
 import { OAuth2Client } from "google-auth-library";
 import axios from "axios";
-import { simpleParser } from "mailparser";
+import { AddressObject, simpleParser } from "mailparser";
 
 export async function getEmail(client: OAuth2Client, emailId: string): Promise<Email> {
-  const res = await axios.get(
-    `https://www.googleapis.com/gmail/v1/users/me/messages/${emailId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${client.credentials.access_token}`,
-      },
-      params: {
-        format: "raw",
-      },
-    }
-  );
+  const res = await axios.get(`https://www.googleapis.com/gmail/v1/users/me/messages/${emailId}`, {
+    headers: {
+      Authorization: `Bearer ${client.credentials.access_token}`,
+    },
+    params: {
+      format: "raw",
+    },
+  });
 
   const { labelIds, snippet, threadId } = res.data;
 
@@ -31,7 +28,7 @@ export async function getEmail(client: OAuth2Client, emailId: string): Promise<E
     isStarred: labelIds.includes("STARRED"),
     labels: labelIds,
     from: from?.value,
-    to: Array.isArray(to) ? to.map((address) => address.value) : to?.value,
+    to: (to as AddressObject)?.value,
     date,
     subject,
     body: {
@@ -47,19 +44,20 @@ export async function getEmail(client: OAuth2Client, emailId: string): Promise<E
   };
 }
 
-export async function listEmails(client: OAuth2Client, query: string, maxResults = 10): Promise<Email[]> {
-  const response = await axios.get(
-    "https://www.googleapis.com/gmail/v1/users/me/messages",
-    {
-      headers: {
-        Authorization: `Bearer ${client.credentials.access_token}`,
-      },
-      params: {
-        maxResults,
-        q: query,
-      },
-    }
-  );
+export async function listEmails(
+  client: OAuth2Client,
+  query: string,
+  maxResults = 10
+): Promise<Email[]> {
+  const response = await axios.get("https://www.googleapis.com/gmail/v1/users/me/messages", {
+    headers: {
+      Authorization: `Bearer ${client.credentials.access_token}`,
+    },
+    params: {
+      maxResults,
+      q: query,
+    },
+  });
 
   const messages = response.data.messages || [];
   return Promise.all(messages.map(async (email: { id: string }) => getEmail(client, email.id)));
