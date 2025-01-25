@@ -11,8 +11,8 @@ export function EmailDisplay({ email }: { email: Email | null }) {
     <div className="flex h-full flex-col overflow-auto [&_img]:inline-block ">
       {email ? (
         <div className="flex flex-1 flex-col">
-          <div className="flex items-start p-4">
-            <div className="flex items-start gap-4 text-sm">
+          <div className="flex justify-between items-baseline gap-10 p-4">
+            <div className="flex items-start gap-5">
               <div className="grid gap-4">
                 <h3 className="font-medium text-xl">{email.subject}</h3>
                 <div className="flex items-center gap-3 ">
@@ -28,7 +28,7 @@ export function EmailDisplay({ email }: { email: Email | null }) {
                   <div className="">
                     <div className="flex items-center gap-2">
                       <p className="line-clamp-1 font-bold text-sm">{email.from?.[0].name}</p>
-                      <span className="font-medium">{`<${email.from?.[0].address}>`}</span>
+                      <span className="font-medium text-xs">{`<${email.from?.[0].address}>`}</span>
                     </div>
                     <div className="line-clamp-1 text-muted-foreground text-xs">
                       <span className="font-medium">To:</span>{" "}
@@ -39,7 +39,7 @@ export function EmailDisplay({ email }: { email: Email | null }) {
               </div>
             </div>
             {email.date && (
-              <div className="ml-auto text-xs font-medium text-muted-foreground">
+              <div className="text-nowrap text-xs font-medium text-muted-foreground">
                 {format(new Date(email.date), "PPpp")}
               </div>
             )}

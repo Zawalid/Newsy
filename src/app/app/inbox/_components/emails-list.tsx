@@ -4,43 +4,67 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
-export function EmailsList({ emails, type }: { emails: Email[]; type: "all" | "unread" }) {
+function renderEmptyState(
+  imageSrc: string,
+  altText: string,
+  heading: string,
+  description: string,
+  imageSize: { width: number; height: number }
+) {
+  return (
+    <div className="flex flex-col px-3 h-full items-center justify-center">
+      <Image src={imageSrc} alt={altText} width={imageSize.width} height={imageSize.height} />
+      <div className="space-y-1.5">
+        <h4 className="text-center font-medium text-foreground">{heading}</h4>
+        <p className="text-center text-sm text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+type Props = {
+  emails: Email[];
+  searchQuery: string;
+  unreadFilter: unknown;
+};
+
+export function EmailsList({ emails, searchQuery, unreadFilter }: Props) {
   const { id } = useParams();
+  const [parent] = useAutoAnimate();
 
   if (!emails.length) {
-    if (type === "unread") {
-      return (
-        <div className="flex flex-col gap-5 h-full items-center justify-center ">
-          <Image src="/no_unread.svg" alt="No unread emails" width={100} height={100} />
-          <div className="space-y-1.5">
-            <h4 className="text-center font-medium text-foreground">
-              You&apos;re all set! 🎉 No unread emails waiting for you.
-            </h4>
-            <p className="text-center text-sm text-muted-foreground">
-              Take a break or explore something new while waiting for updates.
-            </p>
-          </div>
-        </div>
+    if (unreadFilter === true && !searchQuery.trim().length) {
+      return renderEmptyState(
+        "/no-unread.png",
+        "No unread emails",
+        "You’re all set! 🎉 No unread emails waiting for you.",
+        "Take a break or explore something new while waiting for updates.",
+        { width: 160, height: 160 }
       );
     }
-
-    return (
-      <div className="flex flex-col gap-5 h-full items-center justify-center">
-        <Image src="/empty_inbox.svg" alt="Empty inbox illustration" width={120} height={120} />
-        <div className="space-y-2 text-center">
-          <h4 className="font-medium text-foreground">Your inbox is empty.</h4>
-          <p className="text-sm text-muted-foreground">
-            Enjoy your day or check back later for new messages.
-          </p>
-        </div>
-      </div>
+    if (searchQuery.trim().length) {
+      return renderEmptyState(
+        "/no-results-found.png",
+        "No results",
+        `No results found for "${searchQuery}"`,
+        "Try searching for something else or reset the search query.",
+        { width: 160, height: 160 }
+      );
+    }
+    return renderEmptyState(
+      "/empty-mail.png",
+      "No emails",
+      "Nothing to read right now.",
+      "Your inbox is clear for now. New updates will appear here as soon as they arrive.",
+      { width: 240, height: 240 }
     );
   }
 
   return (
     <ScrollArea className="h-[calc(100vh-180px)]">
-      <div className="flex flex-col  gap-2 px-3">
+      <div className="flex flex-col  gap-2 px-3" ref={parent}>
         {emails.map((email) => (
           <Link
             href={`/app/inbox/${email.id}`}

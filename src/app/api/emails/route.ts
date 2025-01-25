@@ -9,8 +9,10 @@ export async function GET() {
     (e) => `from:${e}`
   ).join(" ")}}`;
 
-  const emails = await listEmails(client, query, 10);
-  const newsLetters = [...new Set(emails.map((e) => e.from?.[0].name))];
+  const { emails, error } = await listEmails(client, query, 50);
 
+  if (error) return NextResponse.json({ error: error.message }, { status: error.status });
+
+  const newsLetters = [...new Set(emails?.map((e) => e.from?.[0].name))];
   return NextResponse.json({ newsLetters, emails });
 }

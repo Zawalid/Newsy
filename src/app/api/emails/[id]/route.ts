@@ -3,17 +3,14 @@ import { authorize } from "@/lib/api/auth";
 import { getEmail } from "@/lib/api/emails";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const emailId = (await params).id;
+  const emailId = (await params).id;
 
-    if (!emailId) return NextResponse.json({ error: "Email ID is required." }, { status: 400 });
+  if (!emailId) return NextResponse.json({ error: "Email ID is required." }, { status: 400 });
 
-    const client = await authorize();
-    const email = await getEmail(client, emailId);
+  const client = await authorize();
+  const { email, error } = await getEmail(client, emailId);
 
-    return NextResponse.json(email);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to fetch email." }, { status: 500 });
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: error.status });
+
+  return NextResponse.json(email);
 }
