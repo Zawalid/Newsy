@@ -1,23 +1,15 @@
-import { OAuth2Client } from "google-auth-library";
-import axios, { AxiosError } from "axios";
-import { AddressObject, simpleParser } from "mailparser";
+import { google } from "googleapis";
+import { simpleParser, AddressObject } from "mailparser";
+import { oauth2Client, setCredentials } from "./google-auth";
 
 export async function getEmail(
-  client: OAuth2Client,
   emailId: string
 ): Promise<{ email: Email | null; error: { message: string; status: number } | null }> {
   try {
-    const res = await axios.get(
-      `https://www.googleapis.com/gmail/v1/users/me/messages/${emailId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${client.credentials.access_token}`,
-        },
-        params: {
-          format: "raw",
-        },
-      }
-    );
+    setCredentials();
+
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+    const res = await gmail.users.messages.get({ userId: "me", id: emailId, format: "raw" });
 
     const { labelIds, snippet, threadId } = res.data;
 
@@ -30,11 +22,11 @@ export async function getEmail(
     return {
       email: {
         id: emailId,
-        threadId,
-        snippet,
-        isRead: !labelIds.includes("UNREAD"),
-        isStarred: labelIds.includes("STARRED"),
-        labels: labelIds,
+        threadId: threadId || "",
+        snippet: snippet || "",
+        isRead: !(labelIds || []).includes("UNREAD"),
+        isStarred: (labelIds || []).includes("STARRED"),
+        labels: labelIds || [],
         from: from?.value,
         to: (to as AddressObject)?.value,
         date,
@@ -43,7 +35,7 @@ export async function getEmail(
           html,
           text,
         },
-        attachments: attachments.map((att) => ({
+        attachments: (attachments || []).map((att) => ({
           filename: att.filename,
           contentType: att.contentType,
           size: att.size,
@@ -52,41 +44,37 @@ export async function getEmail(
       },
       error: null,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       email: null,
       error: {
-        message: (error as AxiosError).message,
-        status: (error as AxiosError).response?.status || 500,
+        message: error.message,
+        status: error.code || 500,
       },
     };
   }
 }
 
 export async function listEmails(
-  client: OAuth2Client,
   query: string,
   maxResults = 10
 ): Promise<{ emails: Email[] | null; error: { message: string; status: number } | null }> {
   try {
-    const response = await axios.get("https://www.googleapis.com/gmail/v1/users/me/messages", {
-      headers: {
-        Authorization: `Bearer ${client.credentials.access_token}`,
-      },
-      params: {
-        maxResults,
-        q: query,
-      },
-    });
+    setCredentials();
+
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+    const response = await gmail.users.messages.list({ userId: "me", q: query, maxResults });
 
     const messages = response.data.messages || [];
+    console.log("messages", messages.length);
+
     const emails = await Promise.all(
-      messages.map(async (email: { id: string }) => {
-        const { email: emailData, error } = await getEmail(client, email.id);
+      messages.map(async (message) => {
+        const { email, error } = await getEmail(message.id || "");
         if (error) {
           throw new Error(error.message);
         }
-        return emailData;
+        return email;
       })
     );
 
@@ -94,12 +82,12 @@ export async function listEmails(
       emails: emails.filter((email) => email !== null) as Email[],
       error: null,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       emails: null,
       error: {
-        message: (error as AxiosError).message,
-        status: (error as AxiosError).response?.status || 500,
+        message: error.message,
+        status: error.code || 500,
       },
     };
   }

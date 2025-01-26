@@ -56,7 +56,7 @@ export default function EmailBody({ body }: { body: Email["body"] }) {
   if (body.html)
     return (
       <root.div className="flex-1">
-        <div dangerouslySetInnerHTML={{ __html: sanitize( body.html) || "" }} />
+        <div dangerouslySetInnerHTML={{ __html: sanitize(body.html) || "" }} />
       </root.div>
     );
 

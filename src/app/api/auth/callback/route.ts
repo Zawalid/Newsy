@@ -1,33 +1,19 @@
-import { createAuthClient } from "@/lib/api/auth";
-import fs from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
-
-const TOKEN_FILE = "./tokens.json"; // File to store tokens
-
-async function saveTokensToFile(tokens: any) {
-  await fs.writeFile(TOKEN_FILE, JSON.stringify(tokens, null, 2));
-}
+import { oauth2Client, storeCredentials } from "@/lib/api/google-auth";
 
 export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const code = url.searchParams.get("code");
+  const { searchParams } = new URL(request.url);
+  const code = searchParams.get("code");
+  const error = searchParams.get("error");
 
-  if (!code) {
-    return NextResponse.json({ error: "Authorization code not found" }, { status: 400 });
-  }
-
-  const client = createAuthClient();
+  if (error) return NextResponse.json({ error: "Authorization failed" }, { status: 400 });
+  if (!code) return NextResponse.json({ error: "Authorization code not found" }, { status: 400 });
 
   try {
-    const { tokens ,} = await client.getToken(code);
-    client.setCredentials(tokens);
+    const { tokens } = await oauth2Client.getToken(code);
+    await storeCredentials(tokens);
 
-    // Save tokens to a file for testing
-    await saveTokensToFile(tokens);
-
-    console.log("Authenticated successfully! Tokens saved to file:", tokens);
-
-    return NextResponse.redirect(new URL("/", request.url).toString());
+    return NextResponse.redirect(new URL("/app", request.url).toString());
   } catch (error) {
     console.error("Error exchanging code for tokens:", error);
     return NextResponse.json({ error: "Failed to exchange code for tokens" }, { status: 500 });

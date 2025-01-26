@@ -1,19 +1,16 @@
 import Image from "next/image";
-import axios, { AxiosError } from "axios";
 import { EmailDisplay } from "../_components/email-display";
+import { getEmail } from "@/lib/api/emails";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  try {
-    const id = (await params).id;
-    const res = await axios.get(
-      new URL(process.env.NEXT_PUBLIC_BASE_URL + "/api/emails/" + id).toString()
-    );
+  const id = (await params).id;
+  const { email, error } = await getEmail(id);
 
-    return <EmailDisplay email={res.data} />;
-  } catch (e) {
-    if ((e as AxiosError).status === 404) return <EmailNotFound />;
+  if (error) {
+    if (error.status === 404) return <EmailNotFound />;
     return <Error />;
   }
+  return <EmailDisplay email={email} />;
 }
 
 function EmailNotFound() {

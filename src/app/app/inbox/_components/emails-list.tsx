@@ -1,10 +1,12 @@
-import { formatDistanceToNow } from "date-fns";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
+'use client'
+
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import { formatDistanceToNow } from "date-fns";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 function renderEmptyState(
   imageSrc: string,

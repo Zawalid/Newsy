@@ -9,7 +9,7 @@ declare global {
     isStarred: boolean;
     labels: string[];
     from: EmailAddress[] | undefined;
-    to: EmailAddress[]  | undefined;
+    to: EmailAddress[] | undefined;
     subject: string | undefined;
     date: Date | undefined;
     body: {
@@ -23,4 +23,13 @@ declare global {
     }[];
     priority?: "normal" | "low" | "high";
   };
+
+  interface Credentials {
+    refresh_token?: string | null;
+    expiry_date?: number | null;
+    access_token?: string | null;
+    token_type?: string | null;
+    id_token?: string | null;
+    scope?: string;
+  }
 }

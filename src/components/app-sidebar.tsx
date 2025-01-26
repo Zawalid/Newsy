@@ -21,7 +21,7 @@ const data = {
   user: {
     name: "walid",
     email: "walidps315@gmail.com",
-    avatar: "/avatars/shadcn.jpg",
+    avatar: "/404.png",
   },
   accounts: [
     {
@@ -43,7 +43,7 @@ const data = {
     },
     {
       title: "Inbox",
-      url: "#",
+      url: "/app/inbox",
       icon: Inbox,
       badge: "10",
       isActive: true,

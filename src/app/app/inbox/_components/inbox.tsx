@@ -68,7 +68,8 @@ export default function Inbox({ emails, defaultLayout = [25, 75], children }: Em
     <ResizablePanelGroup
       direction="horizontal"
       onLayout={(sizes: number[]) => {
-        document.cookie = `react-resizable-panels:layout:inbox=${JSON.stringify(sizes)}`;
+        document.cookie = `react-resizable-panels:layout:inbox=${JSON.stringify(sizes)}
+        ; path=/`;
       }}
       className="h-full max-h-[calc(100vh-56px)] items-stretch"
     >

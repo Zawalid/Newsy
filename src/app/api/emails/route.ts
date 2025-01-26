@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
-import { authorize } from "@/lib/api/auth";
 import { listEmails } from "@/lib/api/emails";
 import { NEWS_LETTERS_EMAILS, TECH_KEYWORDS } from "@/lib/constants";
 
-export async function GET() {
-  const client = await authorize();
-  const query = `(${TECH_KEYWORDS.join(" OR ")}) OR {${NEWS_LETTERS_EMAILS.map(
-    (e) => `from:${e}`
-  ).join(" ")}}`;
+const query = `(${TECH_KEYWORDS.join(" OR ")}) OR {${NEWS_LETTERS_EMAILS.map(
+  (e) => `from:${e}`
+).join(" ")}}`;
 
-  const { emails, error } = await listEmails(client, query, 50);
+export async function GET() {
+  const { emails, error } = await listEmails(query, 5);
 
   if (error) return NextResponse.json({ error: error.message }, { status: error.status });
 
-  const newsLetters = [...new Set(emails?.map((e) => e.from?.[0].name))];
-  return NextResponse.json({ newsLetters, emails });
+  const newsletters = [...new Set(emails?.map((e) => e.from?.[0].name))];
+
+  return NextResponse.json({ newsletters, emails });
 }

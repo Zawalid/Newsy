@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authorize } from "@/lib/api/auth";
 import { getEmail } from "@/lib/api/emails";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -7,8 +6,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   if (!emailId) return NextResponse.json({ error: "Email ID is required." }, { status: 400 });
 
-  const client = await authorize();
-  const { email, error } = await getEmail(client, emailId);
+  const { email, error } = await getEmail(emailId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: error.status });
 
