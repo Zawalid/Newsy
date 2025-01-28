@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { listEmails } from "@/lib/api/emails";
-import { NEWS_LETTERS_EMAILS, TECH_KEYWORDS } from "@/lib/constants";
+import { NEWS_LETTERS_EMAILS, TECH_KEYWORDS } from "@/utils/constants";
 
 const query = `(${TECH_KEYWORDS.join(" OR ")}) OR {${NEWS_LETTERS_EMAILS.map(
   (e) => `from:${e}`

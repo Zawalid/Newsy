@@ -6,11 +6,12 @@ import { ThemeProvider } from "@/components/theme-provider";
 import TopLoader from "@/components/top-loader";
 import { Toaster } from "@/components/ui/sonner";
 import { LoaderCircle } from "lucide-react";
+import { SessionProvider } from "next-auth/react";
 
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["300","400", "500", "700", "900"],
+  weight: ["300", "400", "500", "700", "900"],
 });
 
 const robotoMono = Roboto_Mono({
@@ -34,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           disableTransitionOnChange
         >
           <TopLoader />
-          {children}
+          <SessionProvider>{children}</SessionProvider>
           <Toaster
             position="top-right"
             icons={{

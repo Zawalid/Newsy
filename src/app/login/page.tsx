@@ -2,20 +2,16 @@ import Link from "next/link";
 import { MountainIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { oauth2Client } from "@/lib/api/google-auth";
+import { signIn } from "@/lib/auth";
+// import { oauth2Client } from "@/lib/api/google-auth";
 
-const SCOPE = [
-  "https://www.googleapis.com/auth/userinfo.email",
-  "https://www.googleapis.com/auth/userinfo.profile",
-  "https://www.googleapis.com/auth/gmail.readonly",
-];
+// const SCOPE = [
+//   "https://www.googleapis.com/auth/userinfo.email",
+//   "https://www.googleapis.com/auth/userinfo.profile",
+//   "https://www.googleapis.com/auth/gmail.readonly",
+// ];
 
 export default function Page() {
-  const authorizationUrl = oauth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: SCOPE,
-  });
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -104,9 +100,14 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Sign in button */}
-            <Link href={authorizationUrl} className="block w-full">
+            <form
+              action={async () => {
+                "use server";
+                await signIn("google");
+              }}
+            >
               <Button
+                type="submit"
                 variant="outline"
                 className="w-full h-12 text-base font-medium border-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
@@ -130,8 +131,8 @@ export default function Page() {
                 </svg>
                 Continue with Google
               </Button>
-            </Link>
-
+            </form>
+            
             {/* Terms */}
             <p className="text-center text-xs text-muted-foreground mt-6">
               By continuing, you agree to our{" "}
