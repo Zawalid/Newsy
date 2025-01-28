@@ -3,13 +3,6 @@ import { MountainIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { signIn } from "@/lib/auth";
-// import { oauth2Client } from "@/lib/api/google-auth";
-
-// const SCOPE = [
-//   "https://www.googleapis.com/auth/userinfo.email",
-//   "https://www.googleapis.com/auth/userinfo.profile",
-//   "https://www.googleapis.com/auth/gmail.readonly",
-// ];
 
 export default function Page() {
   return (
@@ -103,7 +96,7 @@ export default function Page() {
             <form
               action={async () => {
                 "use server";
-                await signIn("google");
+                await signIn("google", { redirectTo: "/app" });
               }}
             >
               <Button
@@ -132,7 +125,7 @@ export default function Page() {
                 Continue with Google
               </Button>
             </form>
-            
+
             {/* Terms */}
             <p className="text-center text-xs text-muted-foreground mt-6">
               By continuing, you agree to our{" "}

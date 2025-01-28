@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { EmailDisplay } from "../_components/email-display";
-import { getEmail } from "@/lib/api/emails";
+import { getEmail } from "@/lib/gmail/emails";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;

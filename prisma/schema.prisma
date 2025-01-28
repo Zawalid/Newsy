@@ -1,12 +1,11 @@
 generator client {
     provider = "prisma-client-js"
-    output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
-    provider = "postgresql"
+    provider  = "postgresql"
     url       = env("DATABASE_URL")
-    directUrl = env("DATABASE_URL_UNPOOLED")
+    directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model Account {
@@ -70,6 +69,8 @@ model Newsletter {
     userId    String
     createdAt DateTime  @default(now())
     Article   Article[]
+
+    @@map("newsletters")
 }
 
 model Article {
@@ -79,4 +80,6 @@ model Article {
     newsletter   Newsletter @relation(fields: [newsletterId], references: [id])
     newsletterId String
     savedAt      DateTime   @default(now())
+
+    @@map("articles")
 }

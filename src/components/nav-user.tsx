@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react";
 
@@ -18,7 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 export function NavUser() {
   const { data: session } = useSession();
@@ -87,7 +87,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => signOut()}>
               <LogOut />
               Log out
             </DropdownMenuItem>

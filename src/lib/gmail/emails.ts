@@ -1,14 +1,11 @@
-import { google } from "googleapis";
 import { simpleParser, AddressObject } from "mailparser";
-import { getOAuthClient } from "./oAuthClient";
+import { getGmailClient } from "./client";
 
 export async function getEmail(
   emailId: string
 ): Promise<{ email: Email | null; error: { message: string; status: number } | null }> {
   try {
-    const auth = await getOAuthClient();
-
-    const gmail = google.gmail({ version: "v1", auth });
+    const gmail = await getGmailClient();
     const res = await gmail.users.messages.get({ userId: "me", id: emailId, format: "raw" });
 
     const { labelIds, snippet, threadId } = res.data;
@@ -60,9 +57,7 @@ export async function listEmails(
   maxResults = 10
 ): Promise<{ emails: Email[] | null; error: { message: string; status: number } | null }> {
   try {
-    const auth = await getOAuthClient();
-
-    const gmail = google.gmail({ version: "v1", auth });
+    const gmail = await getGmailClient();
     const response = await gmail.users.messages.list({ userId: "me", q: query, maxResults });
 
     const messages = response.data.messages || [];

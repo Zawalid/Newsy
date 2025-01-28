@@ -27,8 +27,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const [googleAccount] = await db.account.findMany({
         where: { userId: user.id, provider: "google" },
       });
-      console.log(user)
-      if (googleAccount.expires_at * 1000 < Date.now()) {
+      if (googleAccount.expires_at && googleAccount.expires_at * 1000 < Date.now()) {
         // If the access token has expired, try to refresh it
         try {
           // https://accounts.google.com/.well-known/openid-configuration
@@ -39,7 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               client_id: process.env.GOOGLE_CLIENT_ID!,
               client_secret: process.env.GOOGLE_CLIENT_SECRET!,
               grant_type: "refresh_token",
-              refresh_token: googleAccount.refresh_token,
+              refresh_token: googleAccount.refresh_token!,
             }),
           });
 
@@ -72,16 +71,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           session.error = "RefreshTokenError";
         }
       }
+
+      session.access_token = googleAccount.access_token;
+      session.refresh_token = googleAccount.refresh_token;
       return session;
     },
   },
-  pages: {
-    signIn: "/login",
-  },
+  pages: { signIn: "/login" },
 });
 
 declare module "next-auth" {
   interface Session {
+    access_token: string | null;
+    refresh_token: string | null;
     error?: "RefreshTokenError";
   }
 }

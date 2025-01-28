@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEmail } from "@/lib/api/emails";
+import { getEmail } from "@/lib/gmail/emails";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const emailId = (await params).id;
