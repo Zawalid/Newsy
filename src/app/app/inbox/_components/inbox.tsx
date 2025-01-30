@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,6 +12,7 @@ import {
   ColumnDef,
   Table,
 } from "@tanstack/react-table";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,44 +25,68 @@ interface EmailProps {
   emails: Email[];
   defaultLayout: number[] | undefined;
   children: React.ReactNode;
+  nextPageToken?: string | null;
+  prevPageToken?: string | null;
+  searchQuery?: string;
 }
 
-export default function Inbox({ emails, defaultLayout = [25, 75], children }: EmailProps) {
+const columns: ColumnDef<Email>[] = [
+  { accessorKey: "from", accessorFn: (row) => row.from?.name },
+  { accessorKey: "subject" },
+  { accessorKey: "date" },
+  { accessorKey: "isRead" },
+];
+
+export default function Inbox({
+  emails,
+  defaultLayout = [25, 75],
+  children,
+  nextPageToken,
+  prevPageToken,
+}: EmailProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  const columns: ColumnDef<Email>[] = [
-    {
-      accessorKey: "from",
-      accessorFn: (row) => row.from?.[0]?.name,
-    },
-    {
-      accessorKey: "subject",
-    },
-    {
-      accessorKey: "date",
-    },
-    {
-      accessorKey: "isRead",
-    },
-  ];
+  const pageIndex = parseInt(searchParams.get("page") || "1", 10) - 1; // Convert 1-based to 0-based
+  const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
 
+  // Debounced search
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     const params = new URLSearchParams(searchParams);
+  //     params.set("q", globalFilter);
+  //     params.delete("pageToken"); // Reset pagination on new search
+  //     router.replace(`${pathname}?${params.toString()}`);
+  //   }, 500);
+
+  //   return () => clearTimeout(timeout);
+  // }, [globalFilter, pathname, router, searchParams]);
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("pageToken", prevPageToken!);
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  const handleNextPage = () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("pageToken", nextPageToken!);
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  // Simplified table config
   const table = useReactTable({
-    data: emails,
     columns,
+    data: emails,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
-    state: {
-      sorting,
-      columnFilters,
-      globalFilter,
-    },
+    manualPagination: true,
+    pageCount: Math.ceil(emails.length / pageSize),
+    state: { pagination: { pageIndex, pageSize } },
   });
 
   return (
@@ -95,11 +120,20 @@ export default function Inbox({ emails, defaultLayout = [25, 75], children }: Em
           </div>
           <Separator />
           <div className="p-4">
-            <Toolbar table={table} globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
+            <Toolbar
+              table={table}
+              globalFilter={globalFilter}
+              setGlobalFilter={setGlobalFilter}
+              onPreviousPage={handlePreviousPage}
+              onNextPage={handleNextPage}
+              hasPreviousPage={!!prevPageToken}
+              hasNextPage={!!nextPageToken}
+              totalResults={emails.length}
+            />{" "}
           </div>
 
           <EmailsList
-            emails={table.getRowModel().rows.map(r => r.original)}
+            emails={table.getRowModel().rows.map((r) => r.original)}
             searchQuery={globalFilter}
             unreadFilter={columnFilters.some(
               (filter) => filter.id === "isRead" && filter.value === false
@@ -119,13 +153,27 @@ type Props = {
   table: Table<Email>;
   globalFilter: string;
   setGlobalFilter: (value: string) => void;
+  onPreviousPage: () => void;
+  onNextPage: () => void;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+  totalResults: number;
 };
 
-function Toolbar({ table, globalFilter, setGlobalFilter }: Props) {
+function Toolbar({
+  table,
+  globalFilter,
+  setGlobalFilter,
+  onPreviousPage,
+  onNextPage,
+  hasPreviousPage,
+  hasNextPage,
+  totalResults,
+}: Props) {
   const [parent] = useAutoAnimate();
 
   return (
-    <div className="flex flex-col gap-3" ref={parent}>
+    <div className="flex flex-col gap-3">
       <form>
         <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -137,35 +185,25 @@ function Toolbar({ table, globalFilter, setGlobalFilter }: Props) {
           />
         </div>
       </form>
-      {table.getFilteredRowModel().rows.length > 0 && (
-        <div className="self-end flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
-            {Math.min(
-              (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-              table.getFilteredRowModel().rows.length
-            )}{" "}
-            of {table.getFilteredRowModel().rows.length}
-          </span>
-          <Button
-            variant="outline"
-            className="size-5  p-2"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-
-          <Button
-            variant="outline"
-            className="size-5  p-2"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <div className="self-end flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">Showing {totalResults} results</span>
+        <Button
+          variant="outline"
+          className="size-5 p-2"
+          onClick={onPreviousPage}
+          disabled={!hasPreviousPage}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          className="size-5 p-2"
+          onClick={onNextPage}
+          disabled={!hasNextPage}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }

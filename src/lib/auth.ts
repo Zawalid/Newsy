@@ -3,6 +3,28 @@ import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./db";
 
+const refreshToken = async (refreshToken: string) => {
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    body: new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID!,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    }),
+  });
+
+  const tokensOrError = await response.json();
+
+  if (!response.ok) throw tokensOrError;
+
+  return tokensOrError as {
+    access_token: string;
+    expires_in: number;
+    refresh_token?: string;
+  };
+};
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(db),
   providers: [
@@ -30,28 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (googleAccount.expires_at && googleAccount.expires_at * 1000 < Date.now()) {
         // If the access token has expired, try to refresh it
         try {
-          // https://accounts.google.com/.well-known/openid-configuration
-          // We need the `token_endpoint`.
-          const response = await fetch("https://oauth2.googleapis.com/token", {
-            method: "POST",
-            body: new URLSearchParams({
-              client_id: process.env.GOOGLE_CLIENT_ID!,
-              client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-              grant_type: "refresh_token",
-              refresh_token: googleAccount.refresh_token!,
-            }),
-          });
-
-          const tokensOrError = await response.json();
-
-          if (!response.ok) throw tokensOrError;
-
-          const newTokens = tokensOrError as {
-            access_token: string;
-            expires_in: number;
-            refresh_token?: string;
-          };
-
+          const newTokens = await refreshToken(googleAccount.refresh_token!);
           await db.account.update({
             data: {
               access_token: newTokens.access_token,
@@ -72,8 +73,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
 
-      session.access_token = googleAccount.access_token;
-      session.refresh_token = googleAccount.refresh_token;
       return session;
     },
   },
@@ -82,8 +81,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 declare module "next-auth" {
   interface Session {
-    access_token: string | null;
-    refresh_token: string | null;
     error?: "RefreshTokenError";
   }
 }

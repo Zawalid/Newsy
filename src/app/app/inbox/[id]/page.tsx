@@ -4,13 +4,13 @@ import { getEmail } from "@/lib/gmail/emails";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
-  const { email, error } = await getEmail(id);
+  const { data: email, error } = await getEmail(id);
 
   if (error) {
-    if (error.status === 404) return <EmailNotFound />;
+    if (error.code === 404) return <EmailNotFound />;
     return <Error />;
   }
-  return <EmailDisplay email={email} />;
+  return <EmailDisplay email={email || null} />;
 }
 
 function EmailNotFound() {

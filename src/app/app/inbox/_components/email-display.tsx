@@ -17,22 +17,21 @@ export function EmailDisplay({ email }: { email: Email | null }) {
                 <h3 className="font-medium text-xl">{email.subject}</h3>
                 <div className="flex items-center gap-3 ">
                   <Avatar>
-                    <AvatarImage alt={email.from?.[0].name} />
+                    <AvatarImage alt={email.from?.name} />
                     <AvatarFallback>
-                      {email.from?.[0].name
-                        .split(" ")
+                      {email.from?.name
+                        ?.split(" ")
                         .map((chunk) => chunk[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="">
                     <div className="flex items-center gap-2">
-                      <p className="line-clamp-1 font-bold text-sm">{email.from?.[0].name}</p>
-                      <span className="font-medium text-xs">{`<${email.from?.[0].address}>`}</span>
+                      <p className="line-clamp-1 font-bold text-sm">{email.from?.name}</p>
+                      <span className="font-medium text-xs">{`<${email.from?.address}>`}</span>
                     </div>
                     <div className="line-clamp-1 text-muted-foreground text-xs">
-                      <span className="font-medium">To:</span>{" "}
-                      {email.to?.map((e) => e.address).join(", ")}
+                      <span className="font-medium">To:</span> {email.to?.address}
                     </div>
                   </div>
                 </div>

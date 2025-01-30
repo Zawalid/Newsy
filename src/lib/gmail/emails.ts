@@ -1,89 +1,43 @@
-import { simpleParser, AddressObject } from "mailparser";
 import { getGmailClient } from "./client";
+import { parseEmail } from "./parser";
 
-export async function getEmail(
-  emailId: string
-): Promise<{ email: Email | null; error: { message: string; status: number } | null }> {
+export const getEmail = async (emailId: string): Promise<GmailResponse<Email>> => {
   try {
     const gmail = await getGmailClient();
-    const res = await gmail.users.messages.get({ userId: "me", id: emailId, format: "raw" });
+    const res = await gmail.users.messages.get({
+      userId: "me",
+      id: emailId,
+      format: "raw",
+    });
 
-    const { labelIds, snippet, threadId } = res.data;
+    const raw = res.data.raw || "";
+    const decoded = Buffer.from(raw, "base64").toString("utf-8");
 
-    const rawEmail = res.data.raw || "";
-    const decodedEmail = Buffer.from(rawEmail, "base64").toString("utf-8");
-    const parsed = await simpleParser(decodedEmail);
-
-    const { from, to, subject, text, html, attachments, date, priority } = parsed;
-
-    return {
-      email: {
-        id: emailId,
-        threadId: threadId || "",
-        snippet: snippet || "",
-        isRead: !(labelIds || []).includes("UNREAD"),
-        isStarred: (labelIds || []).includes("STARRED"),
-        labels: labelIds || [],
-        from: from?.value,
-        to: (to as AddressObject)?.value,
-        date,
-        subject,
-        body: {
-          html,
-          text,
-        },
-        attachments: (attachments || []).map((att) => ({
-          filename: att.filename,
-          contentType: att.contentType,
-          size: att.size,
-        })),
-        priority,
-      },
-      error: null,
-    };
+    return { data: await parseEmail(decoded, emailId, res.data.labelIds || []) };
   } catch (error: any) {
-    return {
-      email: null,
-      error: {
-        message: error.message,
-        status: error.code || 500,
-      },
-    };
+    return { error: { message: error.message, code: error.code || 500 } };
   }
-}
+};
 
-export async function listEmails(
+export const listEmails = async (
   query: string,
-  maxResults = 10
-): Promise<{ emails: Email[] | null; error: { message: string; status: number } | null }> {
+  maxResults = 10,
+  pageToken?: string
+): Promise<GmailResponse<Email[]>> => {
+  console.log(pageToken);
+
   try {
     const gmail = await getGmailClient();
-    const response = await gmail.users.messages.list({ userId: "me", q: query, maxResults });
+    const res = await gmail.users.messages.list({ userId: "me", q: query, maxResults, pageToken });
 
-    const messages = response.data.messages || [];
-    console.log("messages", messages.length);
-
-    const emails = await Promise.all(
-      messages.map(async (message) => {
-        const { email, error } = await getEmail(message.id || "");
-        if (error) {
-          throw new Error(error.message);
-        }
-        return email;
-      })
-    );
+    const messages = res.data.messages || [];
+    const emails = await Promise.all(messages.map((msg) => getEmail(msg.id!)));
 
     return {
-      emails: emails.filter((email) => email !== null) as Email[],
-      error: null,
+      data: emails.filter((e) => e.data).map((e) => e.data!),
+      nextPageToken: res.data.nextPageToken,
     };
   } catch (error: any) {
-    return {
-      emails: null,
-      error: {
-        message: error.message,
-        status: error.code || 500,
-      },
-    };
+    return { error: { message: error.message, code: error.code || 500 } };
   }
-}
+};

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -26,35 +26,30 @@ function renderEmptyState(
   );
 }
 
-type Props = {
-  emails: Email[];
-  searchQuery: string;
-  unreadFilter: unknown;
-};
-
-export function EmailsList({ emails, searchQuery, unreadFilter }: Props) {
+export function EmailsList({ emails }: { emails: Email[] }) {
   const { id } = useParams();
   const [parent] = useAutoAnimate();
 
   if (!emails.length) {
-    if (unreadFilter === true && !searchQuery.trim().length) {
-      return renderEmptyState(
-        "/no-unread.png",
-        "No unread emails",
-        "You’re all set! 🎉 No unread emails waiting for you.",
-        "Take a break or explore something new while waiting for updates.",
-        { width: 160, height: 160 }
-      );
-    }
-    if (searchQuery.trim().length) {
-      return renderEmptyState(
-        "/no-results-found.png",
-        "No results",
-        `No results found for "${searchQuery}"`,
-        "Try searching for something else or reset the search query.",
-        { width: 160, height: 160 }
-      );
-    }
+    // TODO
+    // if (unreadFilter === true && !searchQuery.trim().length) {
+    //   return renderEmptyState(
+    //     "/no-unread.png",
+    //     "No unread emails",
+    //     "You’re all set! 🎉 No unread emails waiting for you.",
+    //     "Take a break or explore something new while waiting for updates.",
+    //     { width: 160, height: 160 }
+    //   );
+    // }
+    // if (searchQuery.trim().length) {
+    //   return renderEmptyState(
+    //     "/no-results-found.png",
+    //     "No results",
+    //     `No results found for "${searchQuery}"`,
+    //     "Try searching for something else or reset the search query.",
+    //     { width: 160, height: 160 }
+    //   );
+    // }
     return renderEmptyState(
       "/empty-mail.png",
       "No emails",
@@ -79,7 +74,7 @@ export function EmailsList({ emails, searchQuery, unreadFilter }: Props) {
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
-                  <div className="font-bold">{email.from?.[0].name}</div>
+                  <div className="font-bold">{email.from?.name}</div>
                   {!email.isRead && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
                 </div>
                 <div

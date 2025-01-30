@@ -1,17 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { listEmails } from "@/lib/gmail/emails";
-import { NEWS_LETTERS_EMAILS, TECH_KEYWORDS } from "@/utils/constants";
 
-const query = `(${TECH_KEYWORDS.join(" OR ")}) OR {${NEWS_LETTERS_EMAILS.map(
-  (e) => `from:${e}`
-).join(" ")}}`;
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const searchQuery = searchParams.get("q") || "";
+  const pageToken = searchParams.get("pageToken") || undefined;
 
-export async function GET() {
-  const { emails, error } = await listEmails(query, 5);
+  console.log(pageToken,typeof pageToken);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: error.status });
+  const { data, nextPageToken, error } = await listEmails(searchQuery, 10, pageToken);
 
-  const newsletters = [...new Set(emails?.map((e) => e.from?.[0].name))];
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ newsletters, emails });
+  return NextResponse.json({ emails: data, nextPageToken });
 }

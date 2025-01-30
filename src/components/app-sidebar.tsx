@@ -18,11 +18,6 @@ import { AccountSwitcher } from "./account-switcher";
 import { NavSecondary } from "./nav-secondary";
 
 const data = {
-  user: {
-    name: "walid",
-    email: "walidps315@gmail.com",
-    avatar: "/404.png",
-  },
   accounts: [
     {
       name: "Personal",
@@ -132,7 +127,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
          <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
