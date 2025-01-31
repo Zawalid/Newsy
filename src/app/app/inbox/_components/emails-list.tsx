@@ -8,17 +8,49 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmailsListSkeleton } from "./loading-skeletons";
+import { useSearchParams } from "@/hooks/useSearchParams";
 
-function renderEmptyState(
-  imageSrc: string,
-  altText: string,
-  heading: string,
-  description: string,
-  imageSize: { width: number; height: number }
-) {
+function renderEmptyState(filter: string, searchQuery: string) {
+  const emptyState: Record<string, { alt: string; heading: string; description: string }> = {
+    "is:unread": {
+      alt: "No unread emails",
+      heading: "You’re all set! 🎉 No unread emails waiting for you.",
+      description: "Take a break or explore something new while waiting for updates.",
+    },
+    "is:important": {
+      alt: "No important emails",
+      heading: "No important emails found.",
+      description: "Mark emails as important to easily find them here.",
+    },
+    "is:starred": {
+      alt: "No starred emails",
+      heading: "No starred emails yet.",
+      description: "Star emails to easily find them later.",
+    },
+    "is:read": {
+      alt: "No read emails",
+      heading: "You haven’t read any emails yet.",
+      description: "Check your inbox and catch up on your messages.",
+    },
+    "": {
+      alt: "No emails",
+      heading: "No emails found.",
+      description: "Try adjusting your filters or search for something else.",
+    },
+    "no-results": {
+      alt: "No results found",
+      heading: `No results found for "${searchQuery}"`,
+      description: "Try searching for something else or adjust your filters.",
+    },
+  };
+
+  const { alt, heading, description } = emptyState[searchQuery.length ? "no-results" : filter];
+
   return (
     <div className="flex flex-col gap-3 h-full items-center justify-center">
-      <Image src={imageSrc} alt={altText} width={imageSize.width} height={imageSize.height} />
+      <Image src={
+        searchQuery.length ? "/no-results.png" :
+        "/empty-inbox.png"} alt={alt} width={160} height={160} />
       <div className="space-y-1.5">
         <h4 className="text-center font-medium text-foreground">{heading}</h4>
         <p className="text-center text-sm text-muted-foreground">{description}</p>
@@ -26,54 +58,28 @@ function renderEmptyState(
     </div>
   );
 }
-
 type EmailsListProps = {
   emails: Email[];
   isLoading: boolean;
   searchQuery: string;
-  filter: "is:unread" | "";
+  filter: string;
 };
 export function EmailsList({ emails, isLoading, searchQuery, filter }: EmailsListProps) {
   const { id } = useParams();
   const [parent] = useAutoAnimate();
+  const { searchParams } = useSearchParams();
 
   if (isLoading) return <EmailsListSkeleton />;
-
-  if (!emails.length) {
-    // TODO
-    if (filter === "is:unread" && !searchQuery.trim().length) {
-      return renderEmptyState(
-        "/no-unread.png",
-        "No unread emails",
-        "You’re all set! 🎉 No unread emails waiting for you.",
-        "Take a break or explore something new while waiting for updates.",
-        { width: 160, height: 160 }
-      );
-    }
-    if (searchQuery.trim().length) {
-      return renderEmptyState(
-        "/no-results-found.png",
-        "No results",
-        `No results found for "${searchQuery}"`,
-        "Try searching for something else or reset the search query.",
-        { width: 160, height: 160 }
-      );
-    }
-    return renderEmptyState(
-      "/empty-mail.png",
-      "No emails",
-      "Nothing to read right now.",
-      "Your inbox is clear for now. New updates will appear here as soon as they arrive.",
-      { width: 240, height: 240 }
-    );
-  }
+  if (!emails.length) return renderEmptyState(filter, searchQuery.trim());
 
   return (
     <ScrollArea className="h-[calc(100vh-220px)]">
       <div className="flex flex-col gap-2" ref={parent}>
         {emails.map((email) => (
           <Link
-            href={`/app/inbox/${email.id}`}
+            href={`/app/inbox/${email.id}${
+              searchParams.toString() ? `?${searchParams.toString()}` : ""
+            }`}
             key={email.id}
             className={cn(
               "flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",

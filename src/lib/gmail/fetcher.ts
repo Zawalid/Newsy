@@ -1,3 +1,4 @@
+import { filterObject } from "../utils";
 import { getGmailClient } from "./client";
 import { parseEmail } from "./parser";
 
@@ -23,7 +24,7 @@ export const fetchEmails = async (
   query: string,
   maxResults = 10,
   pageToken?: string
-): Promise<APIResponse<{ emails: Email[]; nextPageToken?: string | null }>> => {
+): Promise<APIResponse<EmailsListResponse>> => {
   try {
     const gmail = await getGmailClient();
     const res = await gmail.users.messages.list({ userId: "me", q: query, maxResults, pageToken });
@@ -33,7 +34,16 @@ export const fetchEmails = async (
 
     return {
       data: {
-        emails: emails.filter((e) => e.data).map((e) => e.data!),
+        emails: emails
+          .filter((e) => e.data)
+          .map((e) =>
+            filterObject(
+              e.data!,
+              ["threadId", "attachments", "body", "labels", "priority", "to"],
+              "exclude"
+            )
+          ) as Email[],
+
         nextPageToken: res.data.nextPageToken,
       },
     };

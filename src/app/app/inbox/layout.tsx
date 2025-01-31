@@ -1,22 +1,20 @@
 import { cookies } from "next/headers";
 import Inbox from "./_components/inbox";
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import { getEmails } from "@/queries/emailsQueries";
+import { fetchEmails } from "@/lib/gmail/fetcher";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const layout = (await cookies()).get("react-resizable-panels:layout:inbox");
   const defaultLayout = layout ? JSON.parse(layout.value) : undefined;
 
-  const queryClient = new QueryClient();
+  const { data, error } = await fetchEmails("", 10, undefined);
 
-  await queryClient.prefetchQuery({
-    queryKey: ["emails", "", undefined],
-    queryFn: () => getEmails("", ""),
-  });
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <Inbox defaultLayout={defaultLayout}>{children}</Inbox>
-    </HydrationBoundary>
+    <Inbox defaultLayout={defaultLayout} placeholderData ={data}>
+      {children}
+    </Inbox>
   );
 }

@@ -37,3 +37,8 @@ interface APIResponse<T> {
   data?: T;
   error?: APIError;
 }
+
+type EmailsListResponse = {
+  emails: Email[];
+  nextPageToken?: string | null;
+};

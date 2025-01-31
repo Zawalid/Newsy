@@ -12,19 +12,43 @@ import { EmailsList } from "./emails-list";
 import { useEmails } from "@/hooks/useEmails";
 
 interface InboxProps {
-  defaultLayout: number[] | undefined;
   children: React.ReactNode;
+  defaultLayout: number[] | undefined;
+  placeholderData: EmailsListResponse | undefined;
 }
 
-export default function Inbox({ children, defaultLayout = [25, 75] }: InboxProps) {
-  const [filter, setFilter] = useState<"" | "is:unread">("");
+const FILTER_OPTIONS = [
+  { value: "is:unread", label: "Unread" },
+  { value: "is:read", label: "Read" },
+  { value: "is:important", label: "Important" },
+  { value: "is:starred", label: "Starred" },
+];
+
+const getQuery = (filters: string[]) => (filters.length > 0 ? filters.join(" ") : "");
+
+export default function Inbox({ children, defaultLayout = [25, 75], placeholderData }: InboxProps) {
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const searchParams = useSearchParams();
 
   const searchQuery = searchParams.get("q") || "";
   const pageToken = searchParams.get("pageToken") || undefined;
 
   const [parent] = useAutoAnimate();
-  const { emails, nextPageToken, isLoading } = useEmails(`${searchQuery}${filter}`, pageToken);
+  const { emails, nextPageToken, isLoading, isFetching } = useEmails(
+    `${searchQuery} ${getQuery(selectedFilters)}`,
+    pageToken,
+    placeholderData
+  );
+
+  const toggleFilter = (filter: string) => {
+    setSelectedFilters((prev) => {
+      const newFilters = prev.includes(filter)
+        ? prev.filter((f) => f !== filter)
+        : [...prev, filter];
+
+      return newFilters.length === FILTER_OPTIONS.length ? [] : newFilters;
+    });
+  };
 
   return (
     <ResizablePanelGroup
@@ -36,26 +60,36 @@ export default function Inbox({ children, defaultLayout = [25, 75] }: InboxProps
     >
       <ResizablePanel defaultSize={defaultLayout[0]} minSize={25} className="h-full flex flex-col">
         <Tabs defaultValue="all" className="p-3">
-          <TabsList className="w-full ml-auto">
+          <TabsList className="w-full gap-0.5">
             <TabsTrigger
               value="all"
-              className="w-full text-zinc-600 dark:text-zinc-200"
-              onClick={() => setFilter("")}
+              className={`w-full text-zinc-600 dark:text-zinc-200 ${
+                selectedFilters.length === 0 ? "bg-zinc-300 dark:bg-zinc-700" : "!bg-transparent"
+              }`}
+              onClick={() => setSelectedFilters([])}
             >
-              All emails
+              All
             </TabsTrigger>
-            <TabsTrigger
-              value="unread"
-              className="w-full text-zinc-600 dark:text-zinc-200"
-              onClick={() => setFilter("is:unread")}
-            >
-              Unread
-            </TabsTrigger>
+
+            {FILTER_OPTIONS.map(({ value, label }) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className={`w-full text-zinc-600 dark:text-zinc-200 ${
+                  selectedFilters.includes(value)
+                    ? "bg-zinc-300 dark:bg-zinc-700"
+                    : "!bg-transparent"
+                }`}
+                onClick={() => toggleFilter(value)}
+              >
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
         <Separator />
         <div className="p-3 flex flex-col gap-3" ref={parent}>
-          <SearchForm initialQuery={searchQuery} />
+          <SearchForm initialQuery={searchQuery} isLoading={isFetching} />
           <PaginationControls nextPageToken={nextPageToken} />
         </div>
         <Separator />
@@ -64,7 +98,9 @@ export default function Inbox({ children, defaultLayout = [25, 75] }: InboxProps
             emails={emails || []}
             isLoading={isLoading}
             searchQuery={searchQuery}
-            filter={filter}
+            filter={
+              selectedFilters.length > 1 || selectedFilters.length === 0 ? "" : selectedFilters[0]
+            }
           />
         </div>
       </ResizablePanel>

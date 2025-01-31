@@ -1,50 +1,58 @@
 "use client";
 
-// import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useSearchParams } from "@/hooks/useSearchParams";
+import { LoaderCircle, MailSearch, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default function SearchForm({ initialQuery = "" }: { initialQuery?: string }) {
+export default function SearchForm({
+  initialQuery = "",
+  isLoading,
+}: {
+  initialQuery?: string;
+  isLoading: boolean;
+}) {
   const [query, setQuery] = useState(initialQuery);
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
+  const { setSearchParams } = useSearchParams();
 
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
 
-  const handleSearch = (term: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (term) {
-      params.set("q", term);
-      params.delete("pageToken");
-    } else {
-      params.delete("q");
-    }
-    replace(`${pathname}?${params.toString()}`);
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSearchParams({ q: query, pageToken: undefined });
   };
 
   return (
-    <form className="flex gap-5 items-center" onSubmit={(e) => e.preventDefault()}>
-      <div className="relative flex-1">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search emails..."
-          className="pl-8"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSearch(query);
-          }}
-        />
+    <form className="relative" onSubmit={onSubmit}>
+      <Input
+        className="peer pe-9 ps-9"
+        placeholder="Search emails..."
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+        {isLoading ? (
+          <LoaderCircle
+            className="animate-spin"
+            size={16}
+            strokeWidth={2}
+            role="status"
+            aria-label="Loading..."
+          />
+        ) : (
+          <Search size={16} strokeWidth={2} aria-hidden="true" />
+        )}
       </div>
-
-      {/* <Button type="button" onClick={() => handleSearch(query)}>
-        Search
-      </Button> */}
+      <button
+        className="absolute bg-secondary inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-lg text-foreground outline-offset-2 transition-colors hover:bg-secondary/70 focus:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label="Press to search"
+        type="submit"
+      >
+        <MailSearch size={18} strokeWidth={2} aria-hidden="true" />
+      </button>
     </form>
   );
 }
