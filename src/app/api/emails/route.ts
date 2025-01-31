@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listEmails } from "@/lib/gmail/emails";
+import { fetchEmails } from "@/lib/gmail/fetcher";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const searchQuery = searchParams.get("q") || "";
   const pageToken = searchParams.get("pageToken") || undefined;
 
-  console.log(pageToken,typeof pageToken);
+  const { data, error } = await fetchEmails(searchQuery, 10, pageToken);
 
-  const { data, nextPageToken, error } = await listEmails(searchQuery, 10, pageToken);
+  if (error)
+    return NextResponse.json({ message: error.message, code: error.code }, { status: 500 });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ emails: data, nextPageToken });
+  return NextResponse.json(data);
 }

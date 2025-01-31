@@ -28,13 +28,12 @@ interface AddressBody {
   address: string;
 }
 
-type GmailResponse<T> = {
+interface APIError {
+  message: string;
+  code?: number;
+}
+
+interface APIResponse<T> {
   data?: T;
-  error?: {
-    message: string;
-    code?: number;
-  };
-  nextPageToken?: string | null;
-};
-
-
+  error?: APIError;
+}

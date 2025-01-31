@@ -5,8 +5,18 @@ import root from "react-shadow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { formatEmailText, sanitize } from "@/lib/utils";
+import { useEmail } from "@/hooks/useEmails";
+import Image from "next/image";
+import { EmailDisplaySkeleton } from "./loading-skeletons";
 
-export function EmailDisplay({ email }: { email: Email | null }) {
+export function EmailDisplay({ id }: { id: string }) {
+  const { email, isLoading, error } = useEmail(id);
+
+
+  if (isLoading) return <EmailDisplaySkeleton />;
+  if (error && error.code === 404) return <EmailNotFound />;
+  if (error) return <Error />;
+
   return (
     <div className="flex h-full flex-col overflow-auto [&_img]:inline-block ">
       {email ? (
@@ -52,6 +62,8 @@ export function EmailDisplay({ email }: { email: Email | null }) {
 }
 
 export default function EmailBody({ body }: { body: Email["body"] }) {
+  if (!body) return null;
+
   if (body.html)
     return (
       <root.div className="flex-1">
@@ -68,4 +80,34 @@ export default function EmailBody({ body }: { body: Email["body"] }) {
     );
 
   return <div className="text-muted-foreground">No content</div>;
+}
+
+function EmailNotFound() {
+  return (
+    <div className="flex flex-col h-full items-center justify-center">
+      <Image src="/404.png" alt="Email not found" width={350} height={200} />
+      <div className="space-y-1.5">
+        <h4 className="text-center text-xl font-bold text-foreground">Email Not Found</h4>
+        <p className="text-center text-muted-foreground">
+          We couldn&apos;t find the email you were looking for. It might have been moved or deleted.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Error() {
+  return (
+    <div className="flex flex-col h-full items-center justify-center">
+      <Image src="/error.png" alt="Email not found" width={200} height={200} />
+      <div className="space-y-1.5">
+        <h4 className="text-center text-xl font-bold text-foreground">
+          Oops! Something went wrong
+        </h4>
+        <p className="text-center text-muted-foreground">
+          There was an error loading the email. Please try again later.
+        </p>
+      </div>
+    </div>
+  );
 }

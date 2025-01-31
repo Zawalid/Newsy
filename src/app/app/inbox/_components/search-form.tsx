@@ -1,7 +1,6 @@
-// app/inbox/SearchForm.tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
@@ -43,9 +42,9 @@ export default function SearchForm({ initialQuery = "" }: { initialQuery?: strin
         />
       </div>
 
-      <Button type="button" onClick={() => handleSearch(query)}>
+      {/* <Button type="button" onClick={() => handleSearch(query)}>
         Search
-      </Button>
+      </Button> */}
     </form>
   );
 }

@@ -12,18 +12,16 @@ export const data: {
       isRead: false,
       isStarred: false,
       labels: ["UNREAD", "CATEGORY_UPDATES", "INBOX"],
-      from: [
-        {
-          address: "tns@thenewstack.io",
-          name: "The New Stack",
-        },
-      ],
-      to: [
-        {
-          address: "walidps315@gmail.com",
-          name: "",
-        },
-      ],
+      from: {
+        address: "tns@thenewstack.io",
+        name: "The New Stack",
+      },
+
+      to: {
+        address: "walidps315@gmail.com",
+        name: "",
+      },
+
       date: new Date("2025-01-21T23:04:47.000Z"),
       subject: "TNS Daily | January 21",
       body: {
@@ -39,18 +37,16 @@ export const data: {
       isRead: true,
       isStarred: false,
       labels: ["CATEGORY_PROMOTIONS", "INBOX"],
-      from: [
+      from:
         {
           address: "team@today.getpocket.com",
           name: "Pocket",
         },
-      ],
-      to: [
+      to:
         {
           address: "walidps315@gmail.com",
           name: "",
         },
-      ],
       date: new Date("2025-01-21T15:11:38.000Z"),
       subject: "He Was One of Our Most Disturbing Filmmakers. His Disney Movie Is a Masterpiece.",
       body: {
@@ -67,18 +63,16 @@ export const data: {
       isRead: true,
       isStarred: false,
       labels: ["CATEGORY_UPDATES", "INBOX"],
-      from: [
+      from:
         {
           address: "noreply@medium.com",
           name: "Medium Daily Digest",
         },
-      ],
-      to: [
+      to:
         {
           address: "walidps315@gmail.com",
           name: "",
         },
-      ],
       date: new Date("2025-01-21T06:20:00.000Z"),
       subject: "Building a Simple POS System with Next.js and Shadcn UI | Andi S",
       body: {

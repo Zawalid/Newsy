@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmailsListSkeleton } from "./loading-skeletons";
 
 function renderEmptyState(
   imageSrc: string,
@@ -16,7 +17,7 @@ function renderEmptyState(
   imageSize: { width: number; height: number }
 ) {
   return (
-    <div className="flex flex-col px-3 h-full items-center justify-center">
+    <div className="flex flex-col gap-3 h-full items-center justify-center">
       <Image src={imageSrc} alt={altText} width={imageSize.width} height={imageSize.height} />
       <div className="space-y-1.5">
         <h4 className="text-center font-medium text-foreground">{heading}</h4>
@@ -26,30 +27,38 @@ function renderEmptyState(
   );
 }
 
-export function EmailsList({ emails }: { emails: Email[] }) {
+type EmailsListProps = {
+  emails: Email[];
+  isLoading: boolean;
+  searchQuery: string;
+  filter: "is:unread" | "";
+};
+export function EmailsList({ emails, isLoading, searchQuery, filter }: EmailsListProps) {
   const { id } = useParams();
   const [parent] = useAutoAnimate();
 
+  if (isLoading) return <EmailsListSkeleton />;
+
   if (!emails.length) {
     // TODO
-    // if (unreadFilter === true && !searchQuery.trim().length) {
-    //   return renderEmptyState(
-    //     "/no-unread.png",
-    //     "No unread emails",
-    //     "You’re all set! 🎉 No unread emails waiting for you.",
-    //     "Take a break or explore something new while waiting for updates.",
-    //     { width: 160, height: 160 }
-    //   );
-    // }
-    // if (searchQuery.trim().length) {
-    //   return renderEmptyState(
-    //     "/no-results-found.png",
-    //     "No results",
-    //     `No results found for "${searchQuery}"`,
-    //     "Try searching for something else or reset the search query.",
-    //     { width: 160, height: 160 }
-    //   );
-    // }
+    if (filter === "is:unread" && !searchQuery.trim().length) {
+      return renderEmptyState(
+        "/no-unread.png",
+        "No unread emails",
+        "You’re all set! 🎉 No unread emails waiting for you.",
+        "Take a break or explore something new while waiting for updates.",
+        { width: 160, height: 160 }
+      );
+    }
+    if (searchQuery.trim().length) {
+      return renderEmptyState(
+        "/no-results-found.png",
+        "No results",
+        `No results found for "${searchQuery}"`,
+        "Try searching for something else or reset the search query.",
+        { width: 160, height: 160 }
+      );
+    }
     return renderEmptyState(
       "/empty-mail.png",
       "No emails",
@@ -60,8 +69,8 @@ export function EmailsList({ emails }: { emails: Email[] }) {
   }
 
   return (
-    <ScrollArea className="h-[calc(100vh-180px)]">
-      <div className="flex flex-col  gap-2 px-3" ref={parent}>
+    <ScrollArea className="h-[calc(100vh-220px)]">
+      <div className="flex flex-col gap-2" ref={parent}>
         {emails.map((email) => (
           <Link
             href={`/app/inbox/${email.id}`}
@@ -91,7 +100,7 @@ export function EmailsList({ emails }: { emails: Email[] }) {
               </div>
               <div className="text-xs text-wrap line-clamp-1 font-medium">{email.subject}</div>
             </div>
-            <div className="line-clamp-2 whitespace-break-spaces text-xs text-muted-foreground">
+            <div className="line-clamp-2 break-all whitespace-normal text-xs text-muted-foreground">
               {email.snippet}
             </div>
           </Link>
