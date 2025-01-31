@@ -48,9 +48,12 @@ function renderEmptyState(filter: string, searchQuery: string) {
 
   return (
     <div className="flex flex-col gap-3 h-full items-center justify-center">
-      <Image src={
-        searchQuery.length ? "/no-results.png" :
-        "/empty-inbox.png"} alt={alt} width={160} height={160} />
+      <Image
+        src={searchQuery.length ? "/no-results.png" : "/empty-inbox.png"}
+        alt={alt}
+        width={160}
+        height={160}
+      />
       <div className="space-y-1.5">
         <h4 className="text-center font-medium text-foreground">{heading}</h4>
         <p className="text-center text-sm text-muted-foreground">{description}</p>
@@ -89,7 +92,11 @@ export function EmailsList({ emails, isLoading, searchQuery, filter }: EmailsLis
             <div className="flex w-full flex-col gap-1">
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
-                  <div className="font-bold">{email.from?.name}</div>
+                  <HighlightText
+                    className="font-bold"
+                    text={email.from?.name || ""}
+                    query={searchQuery}
+                  />
                   {!email.isRead && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
                 </div>
                 <div
@@ -104,14 +111,46 @@ export function EmailsList({ emails, isLoading, searchQuery, filter }: EmailsLis
                     })}
                 </div>
               </div>
-              <div className="text-xs text-wrap line-clamp-1 font-medium">{email.subject}</div>
+              <HighlightText
+                className="text-xs text-wrap line-clamp-1 font-medium"
+                text={email.subject || ""}
+                query={searchQuery}
+              />
             </div>
-            <div className="line-clamp-2 break-all whitespace-normal text-xs text-muted-foreground">
-              {email.snippet}
-            </div>
+            <HighlightText
+              className="line-clamp-2 break-all whitespace-normal text-xs text-muted-foreground"
+              text={email.snippet}
+              query={searchQuery}
+            />
           </Link>
         ))}
       </div>
     </ScrollArea>
+  );
+}
+
+interface HighlightTextProps extends React.HTMLAttributes<HTMLSpanElement> {
+  text: string;
+  query: string;
+}
+
+function HighlightText({ text, query, ...props }: HighlightTextProps) {
+  if (!query.trim()) return <span>{text}</span>;
+
+  const regex = new RegExp(`(${query})`, "gi");
+  const parts = text.split(regex);
+
+  return (
+    <span {...props}>
+      {parts.map((part, index) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <span key={index} className="bg-yellow-300 text-black px-1 py-[1px]">
+            {part}
+          </span>
+        ) : (
+          part
+        )
+      )}
+    </span>
   );
 }
