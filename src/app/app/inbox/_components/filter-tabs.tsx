@@ -51,7 +51,9 @@ export function FilterTabs({
     window.addEventListener("panels-resized", updateRects, { signal: abortController.signal });
     window.addEventListener("resize", updateRects, { signal: abortController.signal });
 
-    return () => abortController.abort();
+    return () => {
+      abortController.abort();
+    };
   }, [selectedFilters]);
 
   return (

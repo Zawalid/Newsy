@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
 import SearchForm from "./search-form";
 import PaginationControls from "./pagination-controls";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EmailsList } from "./emails-list";
-import { useEmails } from "@/hooks/useEmails";
 import { FilterTabs } from "./filter-tabs";
+import { useEmails } from "@/hooks/useEmails";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface InboxProps {
   children: React.ReactNode;
@@ -17,26 +17,21 @@ interface InboxProps {
   placeholderData: EmailsListResponse | undefined;
 }
 
-const FILTER_OPTIONS = [
-  { value: "is:unread", label: "Unread" },
-  { value: "is:read", label: "Read" },
-  { value: "is:important", label: "Important" },
-  { value: "is:starred", label: "Starred" },
-];
-
 const getQuery = (filters: string[]) => (filters.length > 0 ? filters.join(" ") : "");
 
 export default function Inbox({ children, defaultLayout = [25, 75], placeholderData }: InboxProps) {
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const searchParams = useSearchParams();
-
-  const searchQuery = searchParams.get("q") || "";
-  const pageToken = searchParams.get("pageToken") || undefined;
+  const [selectedFilters, setSelectedFilters] = useQueryState(
+    "filters",
+    parseAsArrayOf(parseAsString).withDefault([])
+  );
+  const [query] = useQueryState("q", { defaultValue: "" });
+  const [pageToken] = useQueryState("pageToken");
 
   const [parent] = useAutoAnimate();
+
   const { emails, nextPageToken, isLoading, isFetching } = useEmails(
-    `${searchQuery} ${getQuery(selectedFilters)}`,
-    pageToken,
+    useDebounce(`${query} ${getQuery(selectedFilters)}`, 500),
+    pageToken || undefined,
     placeholderData
   );
 
@@ -53,15 +48,15 @@ export default function Inbox({ children, defaultLayout = [25, 75], placeholderD
         <FilterTabs selectedFilters={selectedFilters} setSelectedFilters={setSelectedFilters} />
         <Separator />
         <div className="p-3 flex flex-col gap-3" ref={parent}>
-          <SearchForm initialQuery={searchQuery} isLoading={isFetching} />
-          <PaginationControls nextPageToken={nextPageToken} />
+          <SearchForm isLoading={isFetching} />
+          <PaginationControls nextPageToken={nextPageToken} count={emails?.length || 0} />
         </div>
         <Separator />
         <div className="p-3 flex-1">
           <EmailsList
             emails={emails || []}
             isLoading={isLoading}
-            searchQuery={searchQuery}
+            query={query}
             filter={
               selectedFilters.length > 1 || selectedFilters.length === 0 ? "" : selectedFilters[0]
             }

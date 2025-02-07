@@ -2,15 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmailsListSkeleton } from "./loading-skeletons";
-import { useSearchParams } from "@/hooks/useSearchParams";
 
-function renderEmptyState(filter: string, searchQuery: string) {
+function renderEmptyState(filter: string, query: string) {
   const emptyState: Record<string, { alt: string; heading: string; description: string }> = {
     "is:unread": {
       alt: "No unread emails",
@@ -39,17 +38,17 @@ function renderEmptyState(filter: string, searchQuery: string) {
     },
     "no-results": {
       alt: "No results found",
-      heading: `No results found for "${searchQuery}"`,
+      heading: `No results found for "${query}"`,
       description: "Try searching for something else or adjust your filters.",
     },
   };
 
-  const { alt, heading, description } = emptyState[searchQuery.length ? "no-results" : filter];
+  const { alt, heading, description } = emptyState[query.length ? "no-results" : filter];
 
   return (
     <div className="flex flex-col gap-3 h-full items-center justify-center">
       <Image
-        src={searchQuery.length ? "/no-results.png" : "/empty-inbox.png"}
+        src={query.length ? "/no-results.png" : "/empty-inbox.png"}
         alt={alt}
         width={160}
         height={160}
@@ -64,16 +63,16 @@ function renderEmptyState(filter: string, searchQuery: string) {
 type EmailsListProps = {
   emails: Email[];
   isLoading: boolean;
-  searchQuery: string;
+  query: string;
   filter: string;
 };
-export function EmailsList({ emails, isLoading, searchQuery, filter }: EmailsListProps) {
+export function EmailsList({ emails, isLoading, query, filter }: EmailsListProps) {
   const { id } = useParams();
   const [parent] = useAutoAnimate();
-  const { searchParams } = useSearchParams();
+  const searchParams = useSearchParams();
 
   if (isLoading) return <EmailsListSkeleton />;
-  if (!emails.length) return renderEmptyState(filter, searchQuery.trim());
+  if (!emails.length) return renderEmptyState(filter, query.trim());
 
   return (
     <ScrollArea className="h-[calc(100vh-220px)]">
@@ -95,7 +94,7 @@ export function EmailsList({ emails, isLoading, searchQuery, filter }: EmailsLis
                   <HighlightText
                     className="font-bold"
                     text={email.from?.name || ""}
-                    query={searchQuery}
+                    query={query}
                   />
                   {!email.isRead && <span className="flex h-2 w-2 rounded-full bg-blue-600" />}
                 </div>
@@ -114,13 +113,13 @@ export function EmailsList({ emails, isLoading, searchQuery, filter }: EmailsLis
               <HighlightText
                 className="text-xs text-wrap line-clamp-1 font-medium"
                 text={email.subject || ""}
-                query={searchQuery}
+                query={query}
               />
             </div>
             <HighlightText
               className="line-clamp-2 break-all whitespace-normal text-xs text-muted-foreground"
               text={email.snippet}
-              query={searchQuery}
+              query={query}
             />
           </Link>
         ))}

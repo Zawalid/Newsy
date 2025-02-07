@@ -1,31 +1,20 @@
 "use client";
 
+import { useQueryState } from "nuqs";
 import { Input } from "@/components/ui/input";
-import { useSearchParams } from "@/hooks/useSearchParams";
 import { LoaderCircle, MailSearch, Search } from "lucide-react";
-import { useEffect, useState } from "react";
 
-export default function SearchForm({
-  initialQuery = "",
-  isLoading,
-}: {
-  initialQuery?: string;
-  isLoading: boolean;
-}) {
-  const [query, setQuery] = useState(initialQuery);
-  const { setSearchParams } = useSearchParams();
-
-  useEffect(() => {
-    setQuery(initialQuery);
-  }, [initialQuery]);
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSearchParams({ q: query, pageToken: undefined });
-  };
+export default function SearchForm({ isLoading }: { isLoading: boolean }) {
+  const [query, setQuery] = useQueryState("q", { defaultValue: "" });
 
   return (
-    <form className="relative" onSubmit={onSubmit}>
+    <form
+      className="relative"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setQuery(query);
+      }}
+    >
       <Input
         className="peer pe-9 ps-9"
         placeholder="Search emails..."

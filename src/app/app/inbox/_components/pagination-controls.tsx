@@ -1,56 +1,75 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useQueryState } from "nuqs";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default function PaginationControls({ nextPageToken }: { nextPageToken?: string | null }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+const STORAGE_KEY = "pageHistory";
+
+export default function PaginationControls({
+  nextPageToken,
+  count,
+}: {
+  nextPageToken?: string | null;
+  count: number;
+}) {
+  const [pageToken, setPageToken] = useQueryState("pageToken", { defaultValue: "" });
+
   const [pageHistory, setPageHistory] = useState<string[]>([]);
 
-  // Maintain page history stack
+  // Load history from sessionStorage on mount
   useEffect(() => {
-    const currentToken = searchParams.get("pageToken");
-    if (currentToken && !pageHistory.includes(currentToken)) {
-      setPageHistory((prev) => [...prev, currentToken]);
+    const storedHistory = sessionStorage.getItem(STORAGE_KEY);
+    if (storedHistory) {
+      try {
+        const parsedHistory = JSON.parse(storedHistory) as string[];
+        setPageHistory(parsedHistory);
+      } catch (err) {
+        console.error("Error parsing stored page history:", err);
+        setPageHistory([]);
+      }
+    } else {
+      setPageHistory([]);
     }
-  }, [pageHistory, searchParams]);
+  }, []);
+
+  // Update history when pageToken changes
+  useEffect(() => {
+    setPageHistory((prevHistory) => {
+      if (prevHistory.length === 0 || prevHistory[prevHistory.length - 1] !== pageToken) {
+        const newHistory = [...prevHistory, pageToken];
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+        return newHistory;
+      }
+      return prevHistory;
+    });
+  }, [pageToken]);
 
   const onPreviousPage = () => {
+    if (pageHistory.length <= 1) return;
+
     const newHistory = [...pageHistory];
     newHistory.pop(); // Remove current page
-    const prevToken = newHistory.pop() || undefined; // Get previous page token
-
-    const params = new URLSearchParams(searchParams);
-    if (prevToken) {
-      params.set("pageToken", prevToken);
-    } else {
-      params.delete("pageToken");
-    }
+    const prevToken = newHistory[newHistory.length - 1] || null;
 
     setPageHistory(newHistory);
-    router.replace(`${pathname}?${params.toString()}`);
+    setPageToken(prevToken, { shallow: true });
   };
 
   const onNextPage = () => {
     if (!nextPageToken) return;
-
-    const params = new URLSearchParams(searchParams);
-    params.set("pageToken", nextPageToken);
-    router.replace(`${pathname}?${params.toString()}`);
+    setPageToken(nextPageToken, { shallow: true });
   };
 
   return (
     <div className="self-end flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">Showing {20} results</span>
+      <span className="text-sm text-muted-foreground">Showing {count} emails</span>
       <Button
         variant="outline"
         className="size-5 p-2"
         onClick={onPreviousPage}
-        disabled={pageHistory.length <= 0}
+        disabled={pageHistory.length <= 1}
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>

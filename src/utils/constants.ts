@@ -63,3 +63,4 @@ export const TECH_KEYWORDS = [
   "update",
 ];
 
+export const DISPLAYED_EMAILS_COUNT = 50;

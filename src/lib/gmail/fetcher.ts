@@ -1,3 +1,4 @@
+import { DISPLAYED_EMAILS_COUNT } from "@/utils/constants";
 import { filterObject } from "../utils";
 import { getGmailClient } from "./client";
 import { parseEmail } from "./parser";
@@ -22,7 +23,7 @@ export const fetchEmail = async (emailId: string): Promise<APIResponse<Email>> =
 
 export const fetchEmails = async (
   query: string,
-  maxResults = 10,
+  maxResults = DISPLAYED_EMAILS_COUNT,
   pageToken?: string
 ): Promise<APIResponse<EmailsListResponse>> => {
   try {

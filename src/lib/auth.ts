@@ -4,8 +4,6 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./db";
 
 const refreshToken = async (refreshToken: string) => {
-  console.log("Refreshing token...", { refreshToken }); // Log the refresh token (carefully!)
-
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     body: new URLSearchParams({
@@ -17,8 +15,6 @@ const refreshToken = async (refreshToken: string) => {
   });
 
   const tokensOrError = await response.json();
-
-  console.log(tokensOrError)
 
   if (!response.ok) throw tokensOrError;
 
