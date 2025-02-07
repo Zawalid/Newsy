@@ -135,7 +135,7 @@ interface HighlightTextProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 function HighlightText({ text, query, ...props }: HighlightTextProps) {
-  if (!query.trim()) return <span>{text}</span>;
+  if (!query.trim()) return <span {...props}>{text}</span>;
 
   const regex = new RegExp(`(${query})`, "gi");
   const parts = text.split(regex);

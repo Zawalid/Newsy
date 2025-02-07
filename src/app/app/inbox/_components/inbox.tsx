@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import SearchForm from "./search-form";
 import PaginationControls from "./pagination-controls";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EmailsList } from "./emails-list";
 import { useEmails } from "@/hooks/useEmails";
+import { FilterTabs } from "./filter-tabs";
 
 interface InboxProps {
   children: React.ReactNode;
@@ -40,53 +40,17 @@ export default function Inbox({ children, defaultLayout = [25, 75], placeholderD
     placeholderData
   );
 
-  const toggleFilter = (filter: string) => {
-    setSelectedFilters((prev) => {
-      const newFilters = prev.includes(filter)
-        ? prev.filter((f) => f !== filter)
-        : [...prev, filter];
-
-      return newFilters.length === FILTER_OPTIONS.length ? [] : newFilters;
-    });
-  };
-
   return (
     <ResizablePanelGroup
       direction="horizontal"
       onLayout={(sizes: number[]) => {
         document.cookie = `react-resizable-panels:layout:inbox=${JSON.stringify(sizes)}; path=/`;
+        window.dispatchEvent(new Event("panels-resized"));
       }}
       className="h-full max-h-[calc(100vh-56px)] items-stretch"
     >
       <ResizablePanel defaultSize={defaultLayout[0]} minSize={25} className="h-full flex flex-col">
-        <Tabs defaultValue="all" className="p-3">
-          <TabsList className="w-full gap-0.5">
-            <TabsTrigger
-              value="all"
-              className={`w-full text-zinc-600 dark:text-zinc-200 ${
-                selectedFilters.length === 0 ? "bg-zinc-300 dark:bg-zinc-700" : "!bg-transparent"
-              }`}
-              onClick={() => setSelectedFilters([])}
-            >
-              All
-            </TabsTrigger>
-
-            {FILTER_OPTIONS.map(({ value, label }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className={`w-full text-zinc-600 dark:text-zinc-200 ${
-                  selectedFilters.includes(value)
-                    ? "bg-zinc-300 dark:bg-zinc-700"
-                    : "!bg-transparent"
-                }`}
-                onClick={() => toggleFilter(value)}
-              >
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        <FilterTabs selectedFilters={selectedFilters} setSelectedFilters={setSelectedFilters} />
         <Separator />
         <div className="p-3 flex flex-col gap-3" ref={parent}>
           <SearchForm initialQuery={searchQuery} isLoading={isFetching} />
