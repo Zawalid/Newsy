@@ -71,6 +71,8 @@ export function EmailsList({ emails, isLoading, query, filter }: EmailsListProps
   const [parent] = useAutoAnimate();
   const searchParams = useSearchParams();
 
+  console.log(query);
+
   if (isLoading) return <EmailsListSkeleton />;
   if (!emails.length) return renderEmptyState(filter, query.trim());
 
@@ -136,13 +138,15 @@ interface HighlightTextProps extends React.HTMLAttributes<HTMLSpanElement> {
 function HighlightText({ text, query, ...props }: HighlightTextProps) {
   if (!query.trim()) return <span {...props}>{text}</span>;
 
-  const regex = new RegExp(`(${query})`, "gi");
+  console.log(query);
+
+  const regex = new RegExp(`(${query.trim()})`, "gi");
   const parts = text.split(regex);
 
   return (
     <span {...props}>
       {parts.map((part, index) =>
-        part.toLowerCase() === query.toLowerCase() ? (
+        part.toLowerCase() === query.trim().toLowerCase() ? (
           <span key={index} className="bg-yellow-300 text-black px-1 py-[1px]">
             {part}
           </span>

@@ -2,6 +2,7 @@ import { DISPLAYED_EMAILS_COUNT } from "@/utils/constants";
 import { filterObject } from "../utils";
 import { getGmailClient } from "./client";
 import { parseEmail } from "./parser";
+import { getNewsletterQuery } from "../newsletter/detector";
 
 export const fetchEmail = async (emailId: string): Promise<APIResponse<Email>> => {
   try {
@@ -28,7 +29,12 @@ export const fetchEmails = async (
 ): Promise<APIResponse<EmailsListResponse>> => {
   try {
     const gmail = await getGmailClient();
-    const res = await gmail.users.messages.list({ userId: "me", q: query, maxResults, pageToken });
+    const res = await gmail.users.messages.list({
+      userId: "me",
+      q: getNewsletterQuery(query),
+      maxResults,
+      pageToken,
+    });
 
     const messages = res.data.messages || [];
     const emails = await Promise.all(messages.map((msg) => fetchEmail(msg.id!)));

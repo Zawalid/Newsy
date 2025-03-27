@@ -15,7 +15,6 @@ export default function PaginationControls({
   count: number;
 }) {
   const [pageToken, setPageToken] = useQueryState("pageToken", { defaultValue: "" });
-
   const [pageHistory, setPageHistory] = useState<string[]>([]);
 
   // Load history from sessionStorage on mount

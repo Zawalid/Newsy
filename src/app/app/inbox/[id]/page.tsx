@@ -2,6 +2,15 @@ import Image from "next/image";
 import { fetchEmail } from "@/lib/gmail/fetcher";
 import { EmailDisplay } from "../_components/email-display";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const id = (await params).id;
+  const { data, error } = await fetchEmail(id);
+
+  if (error) return { title: error.code === 404 ? "Email Not Found" : "Something Went Wrong" };
+
+  return { title: data?.subject || "Newsy | Inbox" };
+}
+
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const id = (await params).id;
   const { data, error } = await fetchEmail(id);
