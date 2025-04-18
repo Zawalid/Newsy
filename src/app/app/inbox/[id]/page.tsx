@@ -1,24 +1,24 @@
+"use client";
+
 import Image from "next/image";
-import { fetchEmail } from "@/lib/gmail/fetcher";
+import { useParams } from "next/navigation";
 import { EmailDisplay } from "../_components/email-display";
+import { EmailDisplaySkeleton } from "../_components/loading-skeletons";
+import { useEmail } from "@/hooks/use-emails";
+import { useDocumentTitle } from "@/hooks/use-document-title";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const id = (await params).id;
-  const { data, error } = await fetchEmail(id);
+export default function Page() {
+  const params = useParams();
+  const id = params.id as string;
+  const { email, error, isLoading } = useEmail(id);
 
-  if (error) return { title: error.code === 404 ? "Email Not Found" : "Something Went Wrong" };
+  useDocumentTitle(email?.subject, isLoading, error, { notFoundTitle: "Email Not Found" });
 
-  return { title: data?.subject || "Newsy | Inbox" };
-}
-
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  const id = (await params).id;
-  const { data, error } = await fetchEmail(id);
-
+  if (isLoading) return <EmailDisplaySkeleton />;
   if (error) return error.code === 404 ? <EmailNotFound /> : <Error />;
-  if (!data) return <EmailNotFound />;
+  if (!email) return <EmailNotFound />;
 
-  return <EmailDisplay email={data} />;
+  return <EmailDisplay email={email} />;
 }
 
 function EmailNotFound() {

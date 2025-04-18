@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import Inbox from "./_components/inbox";
-import { fetchEmails } from "@/lib/gmail/fetcher";
+import { fetchEmails } from "@/lib/gmail/operations";
 import { DISPLAYED_EMAILS_COUNT } from "@/utils/constants";
 import { Metadata } from "next";
 

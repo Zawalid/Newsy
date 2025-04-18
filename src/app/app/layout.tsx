@@ -1,6 +1,6 @@
 import { SessionProvider } from "next-auth/react";
 import { AppSidebar } from "@/components/app-sidebar";
-import { NavActions } from "@/components/nav-actions";
+import { NavActions } from "@/app/app/inbox/_components/nav-actions";
 import {
   BreadcrumbPage,
   Breadcrumb,

@@ -15,7 +15,7 @@ export async function parseEmail(
 ): Promise<Email> {
   const parsed = await simpleParser(raw);
 
-  console.log(parsed.headers, parseAddress(parsed.from));
+  // console.log(parsed.headers, parseAddress(parsed.from));
 
   return {
     id: messageId,

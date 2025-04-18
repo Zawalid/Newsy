@@ -23,6 +23,16 @@ export const NEWS_LETTERS_DOMAINS = [
   { name: "Android Weekly", domain: "androidweekly.net" },
   { name: "iOS Dev Weekly", domain: "iosdevweekly.com" },
   { name: "DevOps’ish", domain: "devopsish.com" },
+  { name: "Dev.to", domain: "dev.to" },
+  { name: "Changelog", domain: "changelog.com" },
+  { name: "ByteByteGo", domain: "bytebytego.com" },
+  { name: "Pointer.io", domain: "pointer.io" },
+  { name: "Programming Digest", domain: "programmingdigest.net" },
+  { name: "TLDR Tech", domain: "tldr.tech" },
+  { name: "Cooperpress", domain: "cooperpress.com" },
+  { name: "Bytes", domain: "bytes.dev" },
+  { name: "Frontend Horse", domain: "frontend.horse" },
+  { name: "UI Dev Newsletter", domain: "ui.dev" },
 
   // AI, Data Science & Machine Learning
   { name: "Inside Big Data", domain: "insidebigdata.com" },
@@ -37,6 +47,12 @@ export const NEWS_LETTERS_DOMAINS = [
   { name: "Azure Weekly", domain: "azureweekly.com" },
   { name: "Kubelist", domain: "kubelist.com" },
   { name: "Kube Weekly", domain: "kubeweekly.io" },
+  { name: "DevOps Weekly", domain: "devopsweekly.com" },
+  { name: "Cloud Weekly", domain: "cloudweekly.net" },
+  { name: "Serverless Weekly", domain: "serverlessweekly.com" },
+  { name: "Terraform Weekly", domain: "terraformweekly.com" },
+  { name: "DevOps Links", domain: "devopslinks.com" },
+  { name: "Kubernetes News", domain: "kubernetes.news" },
 
   // Security & Cybersecurity
   { name: "Krebs on Security", domain: "krebsonsecurity.com" },
@@ -44,6 +60,16 @@ export const NEWS_LETTERS_DOMAINS = [
   { name: "Security Week", domain: "securityweek.com" },
   { name: "ThreatPost", domain: "threatpost.com" },
   { name: "Cyber Weekly", domain: "cyberweekly.net" },
+  { name: "Schneier on Security", domain: "schneier.com" },
+  { name: "The Hacker News", domain: "thehackernews.com" },
+  { name: "Security Newsletter", domain: "securitynewsletter.co" },
+  { name: "SANS NewsBites", domain: "sans.org" },
+  { name: "Cybersecurity Dive", domain: "cybersecuritydive.com" },
+  { name: "Threat Intelligence Weekly", domain: "threatintelligenceweekly.com" },
+  { name: "Security Weekly", domain: "securityweekly.com" },
+  { name: "Malwarebytes Labs", domain: "blog.malwarebytes.com" },
+  { name: "BleepingComputer", domain: "bleepingcomputer.com" },
+  { name: "CyberScoop", domain: "cyberscoop.com" },
 
   // Blockchain & Crypto
   { name: "Decrypt", domain: "decrypt.co" },
@@ -60,46 +86,45 @@ export const NEWS_LETTERS_DOMAINS = [
   { name: "Fast Company", domain: "fastcompany.com" },
   { name: "VentureBeat", domain: "venturebeat.com" },
   { name: "Engadget", domain: "engadget.com" },
+  { name: "Pragmatic Engineer", domain: "pragmaticengineer.com" },
+  { name: "Level Up", domain: "levelup.patkua.com" },
+  { name: "Software Lead Weekly", domain: "softwareleadweekly.com" },
+  { name: "Tech Lead Digest", domain: "techleaddigest.net" },
 
   // Open Source & Miscellaneous
   { name: "OpenSource.com", domain: "opensource.com" },
   { name: "Red Hat", domain: "redhat.com" },
   { name: "Linux Foundation", domain: "linuxfoundation.org" },
   { name: "DistroWatch", domain: "distrowatch.com" },
+  { name: "GitHub Universe", domain: "githubuniverse.com" },
+  { name: "Open Source Weekly", domain: "opensourceweekly.co" },
+  { name: "Open Source Initiative", domain: "opensource.org" },
+  { name: "Free Software Foundation", domain: "fsf.org" },
+  { name: "HackerRank Blog", domain: "blog.hackerrank.com" },
+  { name: "CodeProject", domain: "codeproject.com" },
+  { name: "CodePen", domain: "codepen.io" },
+  { name: "GitHub Changelog", domain: "githubchangelog.com" },
 
-  // Developer & Programming Newsletters
-  { name: "Dev.to", domain: "dev.to" },
-  { name: "Changelog", domain: "changelog.com" },
-  { name: "ByteByteGo", domain: "bytebytego.com" },
-  { name: "Pointer.io", domain: "pointer.io" },
-  { name: "Programming Digest", domain: "programmingdigest.net" },
-  { name: "TLDR Tech", domain: "tldr.tech" },
-  { name: "Cooperpress", domain: "cooperpress.com" },
-  { name: "Bytes", domain: "bytes.dev" },
-  { name: "Frontend Horse", domain: "frontend.horse" },
-  { name: "UI Dev Newsletter", domain: "ui.dev" },
-  
   // System Design & Architecture
   { name: "High Scalability", domain: "highscalability.com" },
   { name: "Architecture Notes", domain: "architecturenotes.co" },
   { name: "System Design Newsletter", domain: "systemdesign.one" },
-  
-  // Tech Career & Industry
-  { name: "Pragmatic Engineer", domain: "pragmaticengineer.com" },
-  { name: "Level Up", domain: "levelup.patkua.com" },
-  { name: "Software Lead Weekly", domain: "softwareleadweekly.com" },
-  { name: "Tech Lead Digest", domain: "techleaddigest.net" },
-  
+  { name: "System Design Primer", domain: "systemdesignprimer.com" },
+  { name: "The System Design Podcast", domain: "systemdesignpodcast.com" },
+  { name: "Software Architecture Weekly", domain: "softwarearchitectureweekly.com" },
+  { name: "Tech Lead Weekly", domain: "techleadweekly.com" },
+
   // AI & ML Specific
   { name: "The Batch", domain: "deeplearning.ai" },
   { name: "The ML Engineer", domain: "themlengineers.com" },
   { name: "The Sequence", domain: "thesequence.ai" },
   { name: "The Algorithm", domain: "thealgorithm.ai" },
-  
-  // Security
-  { name: "Schneier on Security", domain: "schneier.com" },
-  { name: "The Hacker News", domain: "thehackernews.com" },
-  { name: "Security Newsletter", domain: "securitynewsletter.co" }
+  { name: "AI Weekly", domain: "aiweekly.co" },
+  { name: "Data Elixir", domain: "dataelixir.com" },
+  { name: "Data Science Weekly", domain: "datascienceweekly.com" },
+  { name: "The AI Alignment Forum", domain: "alignmentforum.org" },
+  { name: "The AI Report", domain: "thereport.ai" },
+  { name: "AI in Business", domain: "aiinbusiness.com" },
 ];
 
 export const TECH_KEYWORDS = [

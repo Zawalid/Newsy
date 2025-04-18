@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchEmails } from "@/lib/gmail/fetcher";
+import { fetchEmails } from "@/lib/gmail/operations";
 import { DISPLAYED_EMAILS_COUNT } from "@/utils/constants";
 
 export async function GET(req: NextRequest) {

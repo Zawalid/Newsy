@@ -1,4 +1,4 @@
-import { fetchEmail } from "@/lib/gmail/fetcher";
+import { fetchEmail } from "@/lib/gmail/operations";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {

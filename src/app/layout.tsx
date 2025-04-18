@@ -3,7 +3,6 @@ import { Roboto, Roboto_Mono } from "next/font/google";
 import "@/styles/globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
-import TopLoader from "@/components/top-loader";
 import { Toaster } from "@/components/ui/sonner";
 import { LoaderCircle } from "lucide-react";
 import Providers from "./providers";
@@ -34,7 +33,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           enableSystem
           disableTransitionOnChange
         >
-          <TopLoader />
           <Providers>{children}</Providers>
           <Toaster
             position="top-right"

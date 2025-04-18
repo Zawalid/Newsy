@@ -8,7 +8,7 @@ import SearchForm from "./search-form";
 import PaginationControls from "./pagination-controls";
 import { EmailsList } from "./emails-list";
 import { FilterTabs } from "./filter-tabs";
-import { useEmails } from "@/hooks/useEmails";
+import { useEmails } from "@/hooks/use-emails";
 import { useDebounce } from "@/hooks/use-debounce";
 
 interface InboxProps {

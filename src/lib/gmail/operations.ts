@@ -1,3 +1,5 @@
+"use server";
+
 import { DISPLAYED_EMAILS_COUNT } from "@/utils/constants";
 import { filterObject } from "../utils";
 import { getGmailClient } from "./client";
@@ -54,6 +56,41 @@ export const fetchEmails = async (
         nextPageToken: res.data.nextPageToken,
       },
     };
+  } catch (error: any) {
+    return { error: { message: error.message, code: error.code || 500 } };
+  }
+};
+
+export const markEmailAsReadOrUnread = async (id: string, as: "UNREAD" | "READ") => {
+  try {
+    const gmail = await getGmailClient();
+    await gmail.users.messages.modify({
+      userId: "me",
+      id,
+      requestBody: as === "UNREAD" ? { addLabelIds: ["UNREAD"] } : { removeLabelIds: ["UNREAD"] },
+    });
+    return { success: true };
+  } catch (error: any) {
+    return { error: { message: error.message, code: error.code || 500 } };
+  }
+};
+
+export const deleteEmail = async (id: string, isPermanent: boolean = false) => {
+  try {
+    const gmail = await getGmailClient();
+    if (isPermanent) return await gmail.users.messages.delete({ userId: "me", id });
+    await gmail.users.messages.trash({ userId: "me", id });
+    return { success: true };
+  } catch (error: any) {
+    return { error: { message: error.message, code: error.code || 500 } };
+  }
+};
+
+export const untrashEmail = async (id: string) => {
+  try {
+    const gmail = await getGmailClient();
+    await gmail.users.messages.untrash({ userId: "me", id });
+    return { success: true };
   } catch (error: any) {
     return { error: { message: error.message, code: error.code || 500 } };
   }

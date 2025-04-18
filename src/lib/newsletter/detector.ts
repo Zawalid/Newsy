@@ -45,8 +45,6 @@ export const getNewsletterQuery = (query: string): string => {
   const domainFilter = NEWS_LETTERS_DOMAINS.map(({ domain }) => `from:*@${domain}`).join(" OR ");
   const keywordFilter = `subject:${TECH_KEYWORDS.map((k) => `"${k}"`).join(" OR ")}`;
 
-  console.log( keywordFilter);
-
   const queryParts = [
     query,
     domainFilter, // Match known newsletter domains
