@@ -9,11 +9,11 @@ const FILTER_OPTIONS = [
 ];
 
 export function FilterTabs({
-  selectedFilters,
-  setSelectedFilters,
+  filters,
+  setFilters,
 }: {
-  selectedFilters: string[];
-  setSelectedFilters: Dispatch<SetStateAction<string[]>>;
+  filters: string[];
+  setFilters: Dispatch<SetStateAction<string[]>>;
 }) {
   const [activeTabRect, setActiveTabRect] = useState<DOMRect | null>(null);
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
@@ -21,7 +21,7 @@ export function FilterTabs({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const toggleFilter = (filter: string) => {
-    setSelectedFilters((prev) => {
+    setFilters((prev) => {
       const newFilters = prev.includes(filter)
         ? prev.filter((f) => f !== filter)
         : [...prev, filter];
@@ -35,8 +35,8 @@ export function FilterTabs({
       if (containerRef.current) setContainerRect(containerRef.current.getBoundingClientRect());
 
       const activeTabs = tabsRef.current.filter((tab, index) => {
-        if (index === 0) return selectedFilters.length === 0;
-        return selectedFilters.includes(FILTER_OPTIONS[index - 1].value);
+        if (index === 0) return filters.length === 0;
+        return filters.includes(FILTER_OPTIONS[index - 1].value);
       });
 
       if (activeTabs.length > 0 && activeTabs[0]) {
@@ -54,7 +54,7 @@ export function FilterTabs({
     return () => {
       abortController.abort();
     };
-  }, [selectedFilters]);
+  }, [filters]);
 
   return (
     <div className="p-3">
@@ -71,7 +71,7 @@ export function FilterTabs({
               y: activeTabRect.top - containerRect.top,
               width: activeTabRect.width,
               height: activeTabRect.height,
-              scale: selectedFilters.length > 1 ? [1, 1.02, 1] : 1,
+              scale: filters.length > 1 ? [1, 1.02, 1] : 1,
             }}
             transition={{
               type: "spring",
@@ -87,12 +87,12 @@ export function FilterTabs({
           }}
           className={`relative z-10 flex-1 px-3 rounded-md py-1.5 text-sm font-medium transition-colors
             ${
-              selectedFilters.length === 0
+              filters.length === 0
                 ? "text-zinc-900 dark:text-white bg-white dark:bg-zinc-700"
                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
             }
             `}
-          onClick={() => setSelectedFilters([])}
+          onClick={() => setFilters([])}
         >
           All
         </button>
@@ -105,7 +105,7 @@ export function FilterTabs({
             }}
             className={`relative z-10 flex-1 px-3 rounded-md py-1.5 text-sm font-medium transition-colors
               ${
-                selectedFilters.includes(value)
+                filters.includes(value)
                   ? "text-zinc-900 dark:text-white bg-white dark:bg-zinc-700"
                   : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
               }

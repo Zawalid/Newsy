@@ -23,6 +23,7 @@ export async function parseEmail(
     snippet: parsed.text?.substring(0, 100) || "",
     isRead: !labelIds.includes("UNREAD"),
     isStarred: labelIds.includes("STARRED"),
+    isImportant: labelIds.includes("IMPORTANT"),
     labels: labelIds,
     from: parseAddress(parsed.from),
     to: parseAddress(parsed.to as AddressObject),

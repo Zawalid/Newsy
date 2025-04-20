@@ -12,7 +12,7 @@ export const getEmail = async (emailId: string): Promise<Email | APIError> => {
 };
 
 export const performEmailAction = async (
-  action: "markAsRead" | "markAsUnread" | "delete" | "untrash",
+  action: EmailAction,
   emailId: string,
   value?: boolean
 ): Promise<{ success: boolean } | APIError> => {

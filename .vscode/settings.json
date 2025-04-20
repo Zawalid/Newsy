@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
-        "TAURI"
+        "TAURI",
+        "unstar",
+        "unstarring"
     ],
     "eslint.useFlatConfig": true
 }

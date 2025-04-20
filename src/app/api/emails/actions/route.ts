@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { markEmailAsReadOrUnread, deleteEmail, untrashEmail } from "@/lib/gmail/operations";
+import {
+  markEmailAsReadOrUnread,
+  moveEmailToTrash,
+  untrashEmail,
+  starEmail,
+  unstarEmail,
+} from "@/lib/gmail/operations";
 
 export async function POST(req: NextRequest) {
   const { action, emailId, value } = await req.json();
@@ -7,19 +13,26 @@ export async function POST(req: NextRequest) {
   try {
     let result;
 
-    switch (action) {
+    switch (action as EmailAction) {
       case "markAsRead":
         result = await markEmailAsReadOrUnread(emailId, "READ");
         break;
       case "markAsUnread":
         result = await markEmailAsReadOrUnread(emailId, "UNREAD");
         break;
-      case "delete":
-        result = await deleteEmail(emailId, value === true);
+      case "moveToTrash":
+        result = await moveEmailToTrash(emailId, value === true);
         break;
-      case "untrash":
+      case "removeFromTrash":
         result = await untrashEmail(emailId);
         break;
+      case "star":
+        result = await starEmail(emailId);
+        break;
+      case "unstar":
+        result = await unstarEmail(emailId);
+        break;
+
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }

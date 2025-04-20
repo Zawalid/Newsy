@@ -8,6 +8,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmailsListSkeleton } from "./loading-skeletons";
+import { useQueryState } from "nuqs";
 
 function renderEmptyState(filter: string, query: string) {
   const emptyState: Record<string, { alt: string; heading: string; description: string }> = {
@@ -63,15 +64,14 @@ function renderEmptyState(filter: string, query: string) {
 type EmailsListProps = {
   emails: Email[];
   isLoading: boolean;
-  query: string;
   filter: string;
 };
-export function EmailsList({ emails, isLoading, query, filter }: EmailsListProps) {
+export function EmailsList({ emails, isLoading, filter }: EmailsListProps) {
   const { id } = useParams();
+  const [query] = useQueryState("q", { defaultValue: "" });
   const [parent] = useAutoAnimate();
   const searchParams = useSearchParams();
 
-  console.log(query);
 
   if (isLoading) return <EmailsListSkeleton />;
   if (!emails.length) return renderEmptyState(filter, query.trim());

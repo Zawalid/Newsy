@@ -31,26 +31,33 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
-import { useEmail } from "@/hooks/use-emails";
-import { useEmailActions } from "@/hooks/use-email-actions";
+import { useEmail } from "@/app/app/inbox/hooks/use-emails";
+import { useEmailActions } from "@/app/app/inbox/hooks/use-email-actions";
 
 export function NavActions() {
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const { id } = useParams();
   const { email } = useEmail(id as string);
-  const { markAsRead, markAsUnread, deleteEmail } = useEmailActions();
-
+  const { markAsRead, markAsUnread,starEmail, unstarEmail, moveToTrash,  } = useEmailActions();
 
   if (!email) return null;
 
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <Button variant="ghost" size="icon" className="h-7 w-7">
-        <Star />
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-8"
+        onClick={() => {
+          if (email.isStarred) unstarEmail(email.id);
+          else starEmail(email.id);
+        }}
+      >
+        <Star className={email.isStarred ? "fill-yellow-500 text-yellow-500" : ""} />
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7">
+          <Button variant="ghost" size="icon" className="size-8">
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
@@ -96,7 +103,7 @@ export function NavActions() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
-                deleteEmail(email.id, true);
+                moveToTrash(email.id, true);
                 setIsAlertOpen(false);
               }}
             >

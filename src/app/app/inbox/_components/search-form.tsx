@@ -3,13 +3,20 @@
 import { useQueryState } from "nuqs";
 import { Input } from "@/components/ui/input";
 import { LoaderCircle, MailSearch, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export default function SearchForm({ isLoading }: { isLoading: boolean }) {
+export default function SearchForm({ 
+  isLoading, 
+  className 
+}: { 
+  isLoading: boolean;
+  className?: string;
+}) {
   const [query, setQuery] = useQueryState("q", { defaultValue: "" });
 
   return (
     <form
-      className="relative"
+      className={cn("relative", className)}
       onSubmit={(e) => {
         e.preventDefault();
         setQuery(query);

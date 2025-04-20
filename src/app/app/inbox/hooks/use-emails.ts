@@ -1,11 +1,11 @@
-import { getEmail, getEmails } from "@/queries/emailsQueries";
+import { getEmail, getEmails } from "@/lib/queries/emailsQueries";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const isAPIError = (data: any): data is APIError => data && "message" in data && "code" in data;
 
 export const useEmails = (
   searchQuery: string,
-  pageToken: string | undefined,
+  pageToken: string | null,
   placeholderData?: EmailsListResponse
 ) => {
   const { data, isPending, isFetching } = useQuery<EmailsListResponse | APIError>({
