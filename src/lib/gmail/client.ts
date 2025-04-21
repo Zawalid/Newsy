@@ -1,16 +1,13 @@
 import { google } from "googleapis";
 import { auth } from "@/lib/auth";
-import { db } from "../db";
+import { getAccountByUserId } from "@/data-access/accounts";
 
 export const getGmailClient = async () => {
   const session = await auth();
 
   if (!session || !session.user) throw new Error("Not authenticated");
 
-  const account = await db.account.findFirst({
-    where: { userId: session.user.id, provider: "google" },
-    select: { access_token: true, refresh_token: true },
-  });
+  const account = await getAccountByUserId(session.user.id!);
 
   if (!account) throw new Error("Google account not found");
 
@@ -20,8 +17,8 @@ export const getGmailClient = async () => {
   );
 
   oauth2Client.setCredentials({
-    access_token: account.access_token,
-    refresh_token: account.refresh_token,
+    access_token: account.accessToken,
+    refresh_token: account.refreshToken,
   });
 
   return google.gmail({ version: "v1", auth: oauth2Client });
