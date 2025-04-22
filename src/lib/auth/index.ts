@@ -1,5 +1,4 @@
 import { betterAuth } from "better-auth";
-import { oneTap, openAPI } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import { env } from "@/env";
@@ -11,11 +10,16 @@ export const auth = betterAuth({
   appName: "Newsy",
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: { user: users, account: accounts, session: sessions, verification: verifications },
+    schema: {
+      user: users,
+      account: accounts,
+      session: sessions,
+      verification: verifications,
+    },
   }),
   socialProviders: {
     google: {
-      clientId: env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
       scope: [
         "https://www.googleapis.com/auth/userinfo.profile",
@@ -30,7 +34,8 @@ export const auth = betterAuth({
   },
   account: { accountLinking: { trustedProviders: ["google"] } },
   //   databaseHooks: { user: { create: {} } },
-  plugins: [oneTap(), openAPI(), nextCookies()],
+  plugins: [nextCookies()],
 });
 
-export const getSession = async () => await auth.api.getSession({ headers: await headers() });
+export const getSession = async () =>
+  await auth.api.getSession({ headers: await headers() });

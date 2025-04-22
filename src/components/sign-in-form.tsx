@@ -1,29 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { client, signIn } from "@/lib/auth/client";
+import { signIn } from "@/lib/auth/client";
 
-const oneTap = async () => {
-  try {
-    await client.oneTap({
-      callbackURL: "/",
-      cancelOnTapOutside: true,
-      context: "signin",
-      autoSelect: true,
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-export function SignInForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
-  useEffect(() => {
-    oneTap();
-  }, []);
-
+export function SignInForm({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <div>
@@ -39,13 +24,13 @@ export function SignInForm({ className, ...props }: React.ComponentPropsWithoutR
             Your go-to platform for better news consumption.
           </div>
         </div>
-        <div className="flex mt-10 flex-col gap-6">
+        <div className="mt-10 flex flex-col gap-6">
           <div className="">
-            <p className="text-center text-sm text-muted-foreground">
-              Stay informed with personalized news delivered straight to your inbox. Curated content
-              that matters to you.
+            <p className="text-muted-foreground text-center text-sm">
+              Stay informed with personalized news delivered straight to your
+              inbox. Curated content that matters to you.
             </p>
-            <div className="grid grid-cols-2 gap-4 py-6 text-sm text-muted-foreground">
+            <div className="text-muted-foreground grid grid-cols-2 gap-4 py-6 text-sm">
               <div className="flex items-center gap-2">
                 <svg
                   className="h-4 w-4 text-green-500"
@@ -144,9 +129,9 @@ export function SignInForm({ className, ...props }: React.ComponentPropsWithoutR
           </Button>
         </div>
       </div>
-      <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 [&_a]:hover:text-primary  ">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a> and{" "}
-        <a href="#">Privacy Policy</a>.
+      <div className="text-muted-foreground [&_a]:hover:text-primary text-center text-xs text-balance [&_a]:underline [&_a]:underline-offset-4">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
       </div>
     </div>
   );

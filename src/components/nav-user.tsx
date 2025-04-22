@@ -1,6 +1,13 @@
 "use client";
 
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react";
+import {
+  BadgeCheck,
+  Bell,
+  ChevronsUpDown,
+  CreditCard,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
 import * as React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,13 +27,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { signOut, useSession } from "@/lib/auth/client";
-import { useRouter } from "next/navigation";
 import { useAlert } from "@/hooks/use-alert";
 
 export function NavUser() {
   const { data: session } = useSession();
   const { isMobile } = useSidebar();
-  const router = useRouter();
   const { showAlert, AlertComponent } = useAlert();
 
   if (!session?.user) return null;
@@ -40,7 +45,7 @@ export function NavUser() {
         await signOut({
           fetchOptions: {
             onSuccess: () => {
-              router.push("/sign-in");
+              window.location.href = "/signin";
             },
           },
         });
@@ -58,11 +63,16 @@ export function NavUser() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={session.user.image || ""} alt={session.user.name || ""} />
+                <AvatarImage
+                  src={session.user.image || ""}
+                  alt={session.user.name || ""}
+                />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{session.user.name}</span>
+                <span className="truncate font-semibold">
+                  {session.user.name}
+                </span>
                 <span className="truncate text-xs">{session.user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -77,11 +87,16 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={session.user.image || ""} alt={session.user.name || ""} />
+                  <AvatarImage
+                    src={session.user.image || ""}
+                    alt={session.user.name || ""}
+                  />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{session.user.name}</span>
+                  <span className="truncate font-semibold">
+                    {session.user.name}
+                  </span>
                   <span className="truncate text-xs">{session.user.email}</span>
                 </div>
               </div>
