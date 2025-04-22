@@ -6,13 +6,18 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:pull": "drizzle-kit pull",
-    "postinstall": "pnpm db:generate"
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:ci": "git diff --name-only origin/main | grep -E '\\.(ts|tsx)$' | xargs eslint",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "verify": "pnpm lint && pnpm typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md,css,html}\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -86,6 +91,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
     "@eslint/eslintrc": "^3.2.0",
     "@tauri-apps/cli": "^2.2.7",
     "@types/crypto-js": "^4.2.2",
@@ -97,7 +104,21 @@
     "drizzle-kit": "^0.31.0",
     "eslint": "^9.19.0",
     "eslint-config-next": "15.1.6",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "pretty-quick": "^4.1.1",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.7.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "pretty-quick --staged"
+    ],
+    "*.{json,md,css,html}": [
+      "pretty-quick --staged"
+    ]
   }
 }

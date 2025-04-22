@@ -14,7 +14,8 @@ declare global {
     | "unstar"
     | "markAsImportant"
     | "markAsUnimportant"
-    | "moveToTrash";
+    | "moveToTrash"
+    | "removeFromTrash";
 
   // Email-related interfaces
   interface AddressBody {
