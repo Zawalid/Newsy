@@ -1,6 +1,7 @@
-// "use client";
+"use client";
 
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react";
+import * as React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -18,13 +19,34 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "@/lib/auth/client";
+import { useRouter } from "next/navigation";
+import { useAlert } from "@/hooks/use-alert";
 
 export function NavUser() {
   const { data: session } = useSession();
   const { isMobile } = useSidebar();
+  const router = useRouter();
+  const { showAlert, AlertComponent } = useAlert();
 
   if (!session?.user) return null;
+
+  const handleSignOut = () => {
+    showAlert({
+      title: "Confirm Sign Out",
+      description: "Are you sure you want to sign out of your account?",
+      confirmText: "Sign Out",
+      onConfirm: async () => {
+        await signOut({
+          fetchOptions: {
+            onSuccess: () => {
+              router.push("/sign-in");
+            },
+          },
+        });
+      },
+    });
+  };
 
   return (
     <SidebarMenu>
@@ -87,13 +109,14 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut()}>
+            <DropdownMenuItem onClick={handleSignOut}>
               <LogOut />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
+      <AlertComponent />
     </SidebarMenu>
   );
 }

@@ -1,29 +1,7 @@
-import {
-  pgTable,
-  uniqueIndex,
-  text,
-  timestamp,
-  foreignKey,
-  integer,
-  boolean,
-} from "drizzle-orm/pg-core";
+import { pgTable, uniqueIndex, text, timestamp, foreignKey, boolean } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-export const verificationTokens = pgTable(
-  "verification_tokens",
-  {
-    identifier: text().notNull(),
-    token: text().notNull(),
-    expires: timestamp({ precision: 3, mode: "date" }).notNull(),
-  },
-  (table) => [
-    uniqueIndex("verification_tokens_identifier_token_key").using(
-      "btree",
-      table.identifier.asc().nullsLast().op("text_ops"),
-      table.token.asc().nullsLast().op("text_ops")
-    ),
-  ]
-);
+// =========== AUTH
 
 export const users = pgTable(
   "users",
@@ -32,10 +10,16 @@ export const users = pgTable(
       .primaryKey()
       .notNull()
       .default(sql`gen_random_uuid()`),
-    name: text(),
-    email: text(),
-    emailVerified: timestamp("email_verified", { precision: 3, mode: "date" }),
+    name: text().notNull(),
+    email: text().notNull(),
+    emailVerified: boolean("email_verified").default(false).notNull(),
     image: text(),
+    createdAt: timestamp("created_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (table) => [
     uniqueIndex("users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
@@ -50,22 +34,27 @@ export const accounts = pgTable(
       .notNull()
       .default(sql`gen_random_uuid()`),
     userId: text("user_id").notNull(),
-    type: text().notNull(),
-    provider: text().notNull(),
-    providerAccountId: text("provider_account_id").notNull(),
-    refreshToken: text("refresh_token"),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
     accessToken: text("access_token"),
-    expiresAt: integer("expires_at"),
-    tokenType: text("token_type"),
-    scope: text(),
+    refreshToken: text("refresh_token"),
     idToken: text("id_token"),
-    sessionState: text("session_state"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (table) => [
-    uniqueIndex("accounts_provider_provider_account_id_key").using(
+    uniqueIndex("accounts_provider_account_id_key").using(
       "btree",
-      table.provider.asc().nullsLast().op("text_ops"),
-      table.providerAccountId.asc().nullsLast().op("text_ops")
+      table.providerId.asc().nullsLast().op("text_ops"),
+      table.accountId.asc().nullsLast().op("text_ops")
     ),
     foreignKey({
       columns: [table.userId],
@@ -84,15 +73,20 @@ export const sessions = pgTable(
       .primaryKey()
       .notNull()
       .default(sql`gen_random_uuid()`),
-    sessionToken: text("session_token").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    token: text("token").notNull(),
     userId: text("user_id").notNull(),
-    expires: timestamp({ precision: 3, mode: "date" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
   },
   (table) => [
-    uniqueIndex("sessions_session_token_key").using(
-      "btree",
-      table.sessionToken.asc().nullsLast().op("text_ops")
-    ),
+    uniqueIndex("sessions_token_key").using("btree", table.token.asc().nullsLast().op("text_ops")),
     foreignKey({
       columns: [table.userId],
       foreignColumns: [users.id],
@@ -102,6 +96,34 @@ export const sessions = pgTable(
       .onDelete("cascade"),
   ]
 );
+
+export const verifications = pgTable(
+  "verifications",
+  {
+    id: text()
+      .primaryKey()
+      .notNull()
+      .default(sql`gen_random_uuid()`),
+    identifier: text().notNull(),
+    value: text().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("verifications_identifier_value_key").using(
+      "btree",
+      table.identifier.asc().nullsLast().op("text_ops"),
+      table.value.asc().nullsLast().op("text_ops")
+    ),
+  ]
+);
+
+// ============ APP
 
 export const newsletters = pgTable(
   "newsletters",

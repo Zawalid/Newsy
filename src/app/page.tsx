@@ -1,9 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export default async function Page() {
-  const session = await auth();
+  const session = await getSession();
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -25,11 +25,17 @@ export default async function Page() {
               About
             </Link>
             {session ? (
-              <Link href="/app/inbox" className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700">
+              <Link
+                href="/app/inbox"
+                className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+              >
                 Dashboard
               </Link>
             ) : (
-              <Link href="/login" className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700">
+              <Link
+                href="/sign-in"
+                className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+              >
                 Sign In
               </Link>
             )}
@@ -57,7 +63,7 @@ export default async function Page() {
                 </Link>
               ) : (
                 <Link
-                  href="/login"
+                  href="/sign-in"
                   className="px-8 py-4 bg-white text-blue-600 rounded-full hover:bg-gray-100"
                 >
                   Get Started
@@ -119,7 +125,7 @@ export default async function Page() {
               </Link>
             ) : (
               <Link
-                href="/login"
+                href="/sign-in"
                 className="px-10 py-4 bg-white text-indigo-600 rounded-full hover:bg-gray-100"
               >
                 Sign In

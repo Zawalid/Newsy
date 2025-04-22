@@ -1,6 +1,8 @@
 import { getEmail, getEmails } from "@/lib/queries/emailsQueries";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+// TODO : Uncomment the background refetching
+
 const isAPIError = (data: any): data is APIError => data && "message" in data && "code" in data;
 
 export const useEmails = (
@@ -11,11 +13,9 @@ export const useEmails = (
   const { data, isPending, isFetching } = useQuery<EmailsListResponse | APIError>({
     queryKey: ["emails", searchQuery, pageToken],
     queryFn: () => getEmails(searchQuery, pageToken || ""),
-    // placeholderData : searchQuery || pageToken ?  undefined : placeholderData,
     placeholderData: (previousData) => previousData ?? placeholderData,
 
-    // TODO : Uncomment the following lines to enable background refetching
-    // refetchInterval : 1000 * 5,
+    // refetchInterval : 1000 * 60 * 3,
     // refetchIntervalInBackground: true,
   });
   const queryClient = useQueryClient();
@@ -44,7 +44,7 @@ export const useEmail = (emailId: string) => {
   const { data, isPending } = useQuery<Email | APIError>({
     queryKey: ["email", emailId],
     queryFn: () => getEmail(emailId),
-    staleTime: Infinity,
+    // refetchInterval: 1000 * 60 * 5,
   });
 
   if (isAPIError(data)) return { email: null, error: data, isLoading: isPending };

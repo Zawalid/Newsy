@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { EmailDisplay } from "../_components/email-display";
 import { EmailDisplaySkeleton } from "../_components/loading-skeletons";
-import { useEmail } from "@/app/app/inbox/hooks/use-emails";
+import { useEmail } from "../hooks/use-emails";
 import { useDocumentTitle } from "@/hooks/use-document-title";
 
 export default function Page() {

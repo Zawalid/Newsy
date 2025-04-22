@@ -7,6 +7,7 @@ export const getEmails = async (
 };
 
 export const getEmail = async (emailId: string): Promise<Email | APIError> => {
+  if (!emailId) return { message: "Email ID is required", code: 400 };
   const res = await fetch(`/api/emails/${emailId}`);
   return res.json();
 };

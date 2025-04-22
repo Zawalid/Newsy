@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
 import {
   CornerUpRight,
   MailOpen,
@@ -21,24 +20,12 @@ import {
   DropdownMenuGroup,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-  AlertDialogTitle,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
-import { useEmail } from "@/app/app/inbox/hooks/use-emails";
 import { useEmailActions } from "@/app/app/inbox/hooks/use-email-actions";
+import { useAlert } from "@/hooks/use-alert";
 
-export function NavActions() {
-  const [isAlertOpen, setIsAlertOpen] = React.useState(false);
-  const { id } = useParams();
-  const { email } = useEmail(id as string);
-  const { markAsRead, markAsUnread,starEmail, unstarEmail, moveToTrash,  } = useEmailActions();
+export function EmailActions({ email }: { email: Email }) {
+  const { markAsRead, markAsUnread, starEmail, unstarEmail, moveToTrash } = useEmailActions();
+  const { showAlert, AlertComponent } = useAlert();
 
   if (!email) return null;
 
@@ -85,33 +72,24 @@ export function NavActions() {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => setIsAlertOpen(true)}>
+            <DropdownMenuItem
+              onClick={() => {
+                showAlert({
+                  title: "Confirm Deletion",
+                  description: "Are you sure you want to move this email to trash?",
+                  confirmText: "Confirm",
+                  onConfirm: async () => {
+                    moveToTrash(email.id, true);
+                  },
+                });
+              }}
+            >
               <Trash2 className="mr-2" /> Move to Trash
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to move this email to trash?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                moveToTrash(email.id, true);
-                setIsAlertOpen(false);
-              }}
-            >
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AlertComponent />
     </div>
   );
 }
