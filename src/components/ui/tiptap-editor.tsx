@@ -72,7 +72,7 @@ export function TiptapEditor({ content, placeholder, onChange, className }: Tipt
     editorProps: {
       attributes: {
         class: cn(
-          "prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-12",
+          "prose prose-sm dark:prose-invert max-w-none focus:outline-hidden min-h-12",
           className
         ),
       },

@@ -64,7 +64,7 @@ export function FilterTabs({
       >
         {activeTabRect && containerRect && (
           <motion.div
-            className="absolute top-0 z-0 bg-white rounded-md dark:bg-zinc-700 shadow-sm"
+            className="absolute top-0 z-0 bg-white rounded-md dark:bg-zinc-700 shadow-xs"
             initial={false}
             animate={{
               x: activeTabRect.left - containerRect.left - 4,

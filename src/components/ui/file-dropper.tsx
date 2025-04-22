@@ -136,7 +136,7 @@ export function FileDropper({
             return (
               <div
                 key={`${file.name}-${index}`}
-                className="rounded-md border bg-card px-4 py-3 shadow-sm"
+                className="rounded-md border bg-card px-4 py-3 shadow-xs"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

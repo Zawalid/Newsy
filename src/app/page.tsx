@@ -44,8 +44,8 @@ export default async function Page() {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-grow">
-        <section className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+      <main className="grow">
+        <section className="bg-linear-to-r from-blue-500 to-indigo-600 text-white">
           <div className="container mx-auto flex flex-col md:flex-row items-center px-6 py-24">
             <div className="md:w-1/2">
               <h1 className="text-5xl font-bold mb-6">Your Newsletters, Simplified</h1>
@@ -110,7 +110,7 @@ export default async function Page() {
         </section>
 
         {/* Call to Action Section */}
-        <section className="py-20 bg-gradient-to-r from-indigo-600 to-blue-500 text-white">
+        <section className="py-20 bg-linear-to-r from-indigo-600 to-blue-500 text-white">
           <div className="container mx-auto text-center px-6">
             <h2 className="text-4xl font-bold mb-8">Ready to take control of your newsletters?</h2>
             <p className="text-lg mb-12">
