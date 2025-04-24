@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useState, SetStateAction, Dispatch } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  SetStateAction,
+  Dispatch,
+} from "react";
 import { motion } from "motion/react";
 
 const FILTER_OPTIONS = [
@@ -32,7 +38,8 @@ export function FilterTabs({
 
   useEffect(() => {
     const updateRects = () => {
-      if (containerRef.current) setContainerRect(containerRef.current.getBoundingClientRect());
+      if (containerRef.current)
+        setContainerRect(containerRef.current.getBoundingClientRect());
 
       const activeTabs = tabsRef.current.filter((tab, index) => {
         if (index === 0) return filters.length === 0;
@@ -48,8 +55,12 @@ export function FilterTabs({
 
     const abortController = new AbortController();
 
-    window.addEventListener("panels-resized", updateRects, { signal: abortController.signal });
-    window.addEventListener("resize", updateRects, { signal: abortController.signal });
+    window.addEventListener("panels-resized", updateRects, {
+      signal: abortController.signal,
+    });
+    window.addEventListener("resize", updateRects, {
+      signal: abortController.signal,
+    });
 
     return () => {
       abortController.abort();
@@ -57,65 +68,59 @@ export function FilterTabs({
   }, [filters]);
 
   return (
-    <div className="p-3">
-      <div
-        ref={containerRef}
-        className="relative flex w-full gap-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 p-1"
-      >
-        {activeTabRect && containerRect && (
-          <motion.div
-            className="absolute top-0 z-0 bg-white rounded-md dark:bg-zinc-700 shadow-xs"
-            initial={false}
-            animate={{
-              x: activeTabRect.left - containerRect.left - 4,
-              y: activeTabRect.top - containerRect.top,
-              width: activeTabRect.width,
-              height: activeTabRect.height,
-              scale: filters.length > 1 ? [1, 1.02, 1] : 1,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 30,
-            }}
-          />
-        )}
-
-        <button
-          ref={(el) => {
-            tabsRef.current[0] = el;
+    <div
+      ref={containerRef}
+      className="relative flex w-full gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800"
+    >
+      {activeTabRect && containerRect && (
+        <motion.div
+          className="absolute top-0 z-0 rounded-md bg-white shadow-xs dark:bg-zinc-700"
+          initial={false}
+          animate={{
+            x: activeTabRect.left - containerRect.left - 4,
+            y: activeTabRect.top - containerRect.top,
+            width: activeTabRect.width,
+            height: activeTabRect.height,
+            scale: filters.length > 1 ? [1, 1.02, 1] : 1,
           }}
-          className={`relative z-10 flex-1 px-3 rounded-md py-1.5 text-sm font-medium transition-colors
-            ${
-              filters.length === 0
-                ? "text-zinc-900 dark:text-white bg-white dark:bg-zinc-700"
-                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-            }
-            `}
-          onClick={() => setFilters([])}
-        >
-          All
-        </button>
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 30,
+          }}
+        />
+      )}
 
-        {FILTER_OPTIONS.map(({ value, label }, index) => (
-          <button
-            key={value}
-            ref={(el) => {
-              tabsRef.current[index + 1] = el;
-            }}
-            className={`relative z-10 flex-1 px-3 rounded-md py-1.5 text-sm font-medium transition-colors
-              ${
-                filters.includes(value)
-                  ? "text-zinc-900 dark:text-white bg-white dark:bg-zinc-700"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-              }
-              `}
-            onClick={() => toggleFilter(value)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <button
+        ref={(el) => {
+          tabsRef.current[0] = el;
+        }}
+        className={`relative z-10 flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+          filters.length === 0
+            ? "bg-white text-zinc-900 dark:bg-zinc-700 dark:text-white"
+            : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+        } `}
+        onClick={() => setFilters([])}
+      >
+        All
+      </button>
+
+      {FILTER_OPTIONS.map(({ value, label }, index) => (
+        <button
+          key={value}
+          ref={(el) => {
+            tabsRef.current[index + 1] = el;
+          }}
+          className={`relative z-10 flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            filters.includes(value)
+              ? "bg-white text-zinc-900 dark:bg-zinc-700 dark:text-white"
+              : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+          } `}
+          onClick={() => toggleFilter(value)}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

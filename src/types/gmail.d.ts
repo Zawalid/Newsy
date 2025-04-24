@@ -12,8 +12,6 @@ declare global {
     | "markAsUnread"
     | "star"
     | "unstar"
-    | "markAsImportant"
-    | "markAsUnimportant"
     | "moveToTrash"
     | "removeFromTrash";
 

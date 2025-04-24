@@ -9,9 +9,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
@@ -33,6 +36,7 @@ const buttonVariants = cva(
           "relative no-underline! after:absolute after:bg-primary after:bottom-2 after:h-[1px] after:w-2/3 after:origin-bottom-right after:scale-x-0 hover:after:origin-bottom-left hover:after:scale-x-100 after:transition-transform after:ease-in-out after:duration-300",
       },
       size: {
+        xs: "h-8 rounded-md px-2",
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
@@ -43,7 +47,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 interface IconProps {
@@ -64,10 +68,22 @@ export interface ButtonProps
 
 export type ButtonIconProps = IconProps | IconRefProps;
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps & ButtonIconProps>(
+const Button = React.forwardRef<
+  HTMLButtonElement,
+  ButtonProps & ButtonIconProps
+>(
   (
-    { className, variant, effect, size, icon: Icon, iconPlacement, asChild = false, ...props },
-    ref
+    {
+      className,
+      variant,
+      effect,
+      size,
+      icon: Icon,
+      iconPlacement,
+      asChild = false,
+      ...props
+    },
+    ref,
   ) => {
     const Comp = asChild ? Slot : "button";
     return (
@@ -79,7 +95,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps & ButtonIconProps
         {Icon &&
           iconPlacement === "left" &&
           (effect === "expandIcon" ? (
-            <div className="w-0 translate-x-[0%] pr-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-100 group-hover:mr-2 group-hover:opacity-100">
+            <div className="w-0 translate-x-[0%] pr-0 opacity-0 transition-all duration-200 group-hover:mr-2 group-hover:w-5 group-hover:translate-x-100 group-hover:opacity-100">
               <Icon />
             </div>
           ) : (
@@ -89,7 +105,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps & ButtonIconProps
         {Icon &&
           iconPlacement === "right" &&
           (effect === "expandIcon" ? (
-            <div className="w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-0 group-hover:ml-2 group-hover:opacity-100">
+            <div className="w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:ml-2 group-hover:w-5 group-hover:translate-x-0 group-hover:opacity-100">
               <Icon />
             </div>
           ) : (
@@ -97,7 +113,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps & ButtonIconProps
           ))}
       </Comp>
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

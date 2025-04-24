@@ -14,7 +14,7 @@ const handleGmailError = (error: any): APIError => ({
 
 // Helper function for common Gmail operations
 const performGmailOperation = async <T>(
-  operation: (gmail: Gmail) => Promise<T>
+  operation: (gmail: Gmail) => Promise<T>,
 ): Promise<APIResponse<T>> => {
   try {
     const gmail = await getGmailClient();
@@ -25,7 +25,9 @@ const performGmailOperation = async <T>(
   }
 };
 
-export const fetchEmail = async (emailId: string): Promise<APIResponse<Email>> => {
+export const fetchEmail = async (
+  emailId: string,
+): Promise<APIResponse<Email>> => {
   return performGmailOperation(async (gmail) => {
     const res = await gmail.users.messages.get({
       userId: "me",
@@ -42,7 +44,7 @@ export const fetchEmail = async (emailId: string): Promise<APIResponse<Email>> =
 export const fetchEmails = async (
   query: string,
   maxResults = DISPLAYED_EMAILS_COUNT,
-  pageToken?: string
+  pageToken?: string,
 ): Promise<APIResponse<EmailsListResponse>> => {
   return performGmailOperation(async (gmail) => {
     const res = await gmail.users.messages.list({
@@ -53,7 +55,9 @@ export const fetchEmails = async (
     });
 
     const messages = res.data.messages || [];
-    const emails = await Promise.all(messages.map((msg) => fetchEmail(msg.id!)));
+    const emails = await Promise.all(
+      messages.map((msg) => fetchEmail(msg.id!)),
+    );
 
     return {
       emails: emails
@@ -61,9 +65,9 @@ export const fetchEmails = async (
         .map((e) =>
           filterObject(
             e.data!,
-            ["threadId", "attachments", "body", "labels", "priority", "to"],
-            "exclude"
-          )
+            ["threadId", "attachments", "body", "priority", "to"],
+            "exclude",
+          ),
         ) as Email[],
       nextPageToken: res.data.nextPageToken,
     };
@@ -73,7 +77,7 @@ export const fetchEmails = async (
 export const modifyLabels = async (
   id: string,
   addLabelIds: string[] = [],
-  removeLabelIds: string[] = []
+  removeLabelIds: string[] = [],
 ) => {
   return performGmailOperation(async (gmail) => {
     await gmail.users.messages.modify({
@@ -85,11 +89,19 @@ export const modifyLabels = async (
   });
 };
 
-export const markEmailAsReadOrUnread = async (id: string, as: "UNREAD" | "READ") => {
-  return as === "UNREAD" ? modifyLabels(id, ["UNREAD"]) : modifyLabels(id, [], ["UNREAD"]);
+export const markEmailAsReadOrUnread = async (
+  id: string,
+  as: "UNREAD" | "READ",
+) => {
+  return as === "UNREAD"
+    ? modifyLabels(id, ["UNREAD"])
+    : modifyLabels(id, [], ["UNREAD"]);
 };
 
-export const moveEmailToTrash = async (id: string, isPermanent: boolean = false) => {
+export const moveEmailToTrash = async (
+  id: string,
+  isPermanent: boolean = false,
+) => {
   return performGmailOperation(async (gmail) => {
     if (isPermanent) {
       await gmail.users.messages.delete({ userId: "me", id });

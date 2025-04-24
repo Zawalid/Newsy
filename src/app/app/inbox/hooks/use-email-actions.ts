@@ -10,7 +10,6 @@ const actionToFilterMap: Partial<Record<EmailAction, string>> = {
   unstar: "is:starred",
   markAsRead: "is:unread",
   markAsUnread: "is:read",
-  markAsUnimportant: "is:important",
 };
 
 export function useEmailActions() {
