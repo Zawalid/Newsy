@@ -6,5 +6,3 @@ interface Credentials {
   id_token?: string | null;
   scope?: string;
 }
-
-

@@ -1,15 +1,15 @@
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { performEmailAction } from "@/lib/queries/emailsQueries";
-import { useEmailsSearchAndFilters } from "./use-emails-search-filters";
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { performEmailAction } from '@/lib/queries/emailsQueries';
+import { useEmailsSearchAndFilters } from './use-emails-search-filters';
 
-type EmailUpdate = Partial<Pick<Email, "isRead" | "isStarred" | "isImportant">>;
+type EmailUpdate = Partial<Pick<Email['status'], 'isRead' | 'isStarred' | 'isImportant'>>;
 
 const actionToFilterMap: Partial<Record<EmailAction, string>> = {
-  unstar: "is:starred",
-  markAsRead: "is:unread",
-  markAsUnread: "is:read",
+  unstar: 'is:starred',
+  markAsRead: 'is:unread',
+  markAsUnread: 'is:read',
 };
 
 export function useEmailActions() {
@@ -20,7 +20,7 @@ export function useEmailActions() {
 
   // Checks if action would make email match the current filter (to add it)
   const shouldAddToView = (action: EmailAction): boolean => {
-    if (action === "moveToTrash") return false;
+    if (action === 'moveToTrash') return false;
     if (filters.length === 0) return true; // No filters, always add
 
     const affectedFilter = actionToFilterMap[action];
@@ -30,11 +30,7 @@ export function useEmailActions() {
   };
 
   // Checks if action would make the email no longer match any current filter
-  const shouldRemoveFromView = (
-    action: EmailAction,
-    emailId: string,
-    update?: EmailUpdate,
-  ): boolean => {
+  const shouldRemoveFromView = (action: EmailAction, emailId: string, update?: EmailUpdate): boolean => {
     if (filters.length === 0) return false;
 
     const affectedFilter = actionToFilterMap[action];
@@ -45,9 +41,7 @@ export function useEmailActions() {
 
     // For combined filters, we need to check if email would still match other filters
     if (filters.length > 1) {
-      const email = queryClient.getQueryData(["email", emailId]) as
-        | Email
-        | undefined;
+      const email = queryClient.getQueryData(['email', emailId]) as Email | undefined;
       if (!email) return true; // If we can't find the email, assume we should remove
 
       const updatedEmail = { ...email, ...update };
@@ -57,10 +51,10 @@ export function useEmailActions() {
 
         // Check if email would match other filters
         return (
-          (filter === "is:starred" && updatedEmail.isStarred) ||
-          (filter === "is:unread" && !updatedEmail.isRead) ||
-          (filter === "is:read" && updatedEmail.isRead) ||
-          (filter === "is:important" && updatedEmail.isImportant)
+          (filter === 'is:starred' && updatedEmail.status.isStarred) ||
+          (filter === 'is:unread' && !updatedEmail.status.isRead) ||
+          (filter === 'is:read' && updatedEmail.status.isRead) ||
+          (filter === 'is:important' && updatedEmail.status.isImportant)
         );
       });
 
@@ -72,43 +66,31 @@ export function useEmailActions() {
   };
 
   // Update query cache across different query keys
-  const updateEmailsCache = (
-    operation: "add" | "remove" | "update",
-    emailId: string,
-    update?: EmailUpdate,
-  ) => {
+  const updateEmailsCache = (operation: 'add' | 'remove' | 'update', emailId: string, update?: EmailUpdate) => {
     // Common function to apply updates to different query keys
     const applyToQueryCache = (queryKey: any[]) => {
       queryClient.setQueriesData({ queryKey }, (oldData: any) => {
         if (!oldData?.emails) return oldData;
 
-        if (operation === "remove") {
+        if (operation === 'remove') {
           return {
             ...oldData,
-            emails: oldData.emails.filter(
-              (email: Email) => email.id !== emailId,
-            ),
+            emails: oldData.emails.filter((email: Email) => email.id !== emailId),
           };
-        } else if (operation === "update") {
+        } else if (operation === 'update') {
           return {
             ...oldData,
-            emails: oldData.emails.map((email: Email) =>
-              email.id === emailId ? { ...email, ...update } : email,
-            ),
+            emails: oldData.emails.map((email: Email) => (email.id === emailId ? { ...email, ...update } : email)),
           };
-        } else if (operation === "add") {
+        } else if (operation === 'add') {
           // Get the email data if not in the cache already
-          const emailData = queryClient.getQueryData(["email", emailId]) as
-            | Email
-            | undefined;
+          const emailData = queryClient.getQueryData(['email', emailId]) as Email | undefined;
           if (!emailData) return oldData;
 
           const updatedEmail = { ...emailData, ...update };
 
           // Check if email already exists
-          const emailExists = oldData.emails.some(
-            (email: Email) => email.id === emailId,
-          );
+          const emailExists = oldData.emails.some((email: Email) => email.id === emailId);
           if (emailExists) return oldData;
 
           return { ...oldData, emails: [updatedEmail, ...oldData.emails] };
@@ -119,14 +101,14 @@ export function useEmailActions() {
     };
 
     // Update all relevant email lists
-    applyToQueryCache(["emails"]);
+    applyToQueryCache(['emails']);
 
     // Handle query key structure: ["emails", query, pageToken]
-    if (query || pageToken) applyToQueryCache(["emails", query, pageToken]);
+    if (query || pageToken) applyToQueryCache(['emails', query, pageToken]);
 
     // For individual email updates
-    if (operation === "update" && update) {
-      queryClient.setQueryData(["email", emailId], (oldData: any) => {
+    if (operation === 'update' && update) {
+      queryClient.setQueryData(['email', emailId], (oldData: any) => {
         if (!oldData) return oldData;
         return { ...oldData, ...update };
       });
@@ -137,37 +119,34 @@ export function useEmailActions() {
     action: EmailAction,
     emailId: string,
     update?: EmailUpdate,
-    errorMessage?: string,
+    errorMessage?: string
   ) => {
     // Apply optimistic updates to cache
-    if (update) updateEmailsCache("update", emailId, update);
+    if (update) updateEmailsCache('update', emailId, update);
 
     console.log(action);
     // Check if email should be added or removed from current view
-    if (
-      shouldRemoveFromView(action, emailId, update) ||
-      action === "moveToTrash"
-    ) {
-      console.log("remove");
-      updateEmailsCache("remove", emailId);
+    if (shouldRemoveFromView(action, emailId, update) || action === 'moveToTrash') {
+      console.log('remove');
+      updateEmailsCache('remove', emailId);
     } else if (update && shouldAddToView(action)) {
-      console.log("add");
-      updateEmailsCache("add", emailId, update);
+      console.log('add');
+      updateEmailsCache('add', emailId, update);
     }
 
     // Perform the server action
     const result = await performEmailAction(action, emailId);
 
     // Handle errors
-    if ("message" in result) {
+    if ('message' in result) {
       toast.error(errorMessage || `Error performing action`, {
         description: result.message,
       });
 
       // Invalidate caches to ensure they're up to date
-      queryClient.invalidateQueries({ queryKey: ["emails"] });
-      if (action !== "moveToTrash") {
-        queryClient.invalidateQueries({ queryKey: ["email", emailId] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+      if (action !== 'moveToTrash') {
+        queryClient.invalidateQueries({ queryKey: ['email', emailId] });
       }
     }
 
@@ -176,48 +155,22 @@ export function useEmailActions() {
 
   return {
     markAsRead: (emailId: string) =>
-      executeEmailAction(
-        "markAsRead",
-        emailId,
-        { isRead: true },
-        "Error marking email as read",
-      ),
+      executeEmailAction('markAsRead', emailId, { isRead: true }, 'Error marking email as read'),
 
     markAsUnread: (emailId: string) =>
-      executeEmailAction(
-        "markAsUnread",
-        emailId,
-        { isRead: false },
-        "Error marking email as unread",
-      ),
+      executeEmailAction('markAsUnread', emailId, { isRead: false }, 'Error marking email as unread'),
 
-    starEmail: (emailId: string) =>
-      executeEmailAction(
-        "star",
-        emailId,
-        { isStarred: true },
-        "Error starring email",
-      ),
+    starEmail: (emailId: string) => executeEmailAction('star', emailId, { isStarred: true }, 'Error starring email'),
 
     unstarEmail: (emailId: string) =>
-      executeEmailAction(
-        "unstar",
-        emailId,
-        { isStarred: false },
-        "Error unstarring email",
-      ),
+      executeEmailAction('unstar', emailId, { isStarred: false }, 'Error unstarring email'),
 
     moveToTrash: async (emailId: string, redirectAfterDelete = false) => {
       if (redirectAfterDelete) {
         const searchParams = new URLSearchParams(window.location.search);
-        router.replace("/app/inbox?" + searchParams.toString());
+        router.replace('/app/inbox?' + searchParams.toString());
       }
-      return executeEmailAction(
-        "moveToTrash",
-        emailId,
-        undefined,
-        "Error deleting email",
-      );
+      return executeEmailAction('moveToTrash', emailId, undefined, 'Error deleting email');
     },
   };
 }

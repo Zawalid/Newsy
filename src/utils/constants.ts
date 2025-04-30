@@ -1,1 +1,3 @@
-export const DISPLAYED_EMAILS_COUNT = 50;
+export const DEFAULT_EMAILS_DISPLAYED = 10;
+export const DEFAULT_CHUNK_SIZE = 25;
+export const DEFAULT_MAX_EMAILS = 3000;
