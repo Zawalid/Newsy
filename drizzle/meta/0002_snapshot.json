@@ -1,6 +1,6 @@
 {
-  "id": "f1fef6c5-ffef-450d-90cb-2b88cb7e7b0c",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "5f7b121e-aca7-43e5-8dc6-ad9d6db29264",
+  "prevId": "67a42c1c-6597-445d-977e-32649eaba265",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -256,6 +256,13 @@
           "notNull": true,
           "default": 0
         },
+        "inbox_total_emails": {
+          "name": "inbox_total_emails",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
         "newsletters_found_count": {
           "name": "newsletters_found_count",
           "type": "integer",
@@ -269,8 +276,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "discovered_senders": {
-          "name": "discovered_senders",
+        "discovered_newsletters": {
+          "name": "discovered_newsletters",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,

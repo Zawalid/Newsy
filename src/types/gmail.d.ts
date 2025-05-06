@@ -58,7 +58,11 @@ declare global {
     listId?: string;
   }
 
-  interface EmailMetadata extends Pick<Email, 'id' | 'from' | 'snippet' | 'subject' | 'unsubscribeUrl' | 'listId'> {
+  interface EmailMetadata
+    extends Pick<
+      Email,
+      'id' | 'from' | 'snippet' | 'subject' | 'unsubscribeUrl' | 'listId' | 'date' | 'labels' | 'status'
+    > {
     fromRaw: string;
   }
 
@@ -73,8 +77,10 @@ declare global {
     error?: APIError;
   }
 
-  interface EmailsListResponse<T = Email> {
+  interface EmailsListResponse<T = EmailMetadata> {
     emails: T[];
     nextPageToken?: string | null;
   }
 }
+
+export {};

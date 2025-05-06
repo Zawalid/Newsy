@@ -1,7 +1,7 @@
 export const getEmails = async (
   searchQuery: string,
   pageToken: string
-): Promise<{ emails: Email[]; nextPageToken: string } | APIError> => {
+): Promise<{ emails: EmailMetadata[]; nextPageToken: string } | APIError> => {
   const res = await fetch(`/api/emails?q=${searchQuery}&pageToken=${pageToken}`);
   return res.json();
 };

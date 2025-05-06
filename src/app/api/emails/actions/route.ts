@@ -1,43 +1,48 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 import {
   markEmailAsReadOrUnread,
   moveEmailToTrash,
   untrashEmail,
   starEmail,
   unstarEmail,
-} from "@/lib/gmail/operations";
+} from '@/lib/gmail/operations';
+// import { getUserIdFromSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
+  // TODO : Uncomment this when testing is done
+  // const userId = await getUserIdFromSession();
+  // if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const { action, emailId, value } = await req.json();
 
   try {
     let result;
 
     switch (action as EmailAction) {
-      case "markAsRead":
-        result = await markEmailAsReadOrUnread(emailId, "READ");
+      case 'markAsRead':
+        result = await markEmailAsReadOrUnread(emailId, 'READ');
         break;
-      case "markAsUnread":
-        result = await markEmailAsReadOrUnread(emailId, "UNREAD");
+      case 'markAsUnread':
+        result = await markEmailAsReadOrUnread(emailId, 'UNREAD');
         break;
-      case "moveToTrash":
+      case 'moveToTrash':
         result = await moveEmailToTrash(emailId, value === true);
         break;
-      case "removeFromTrash":
+      case 'removeFromTrash':
         result = await untrashEmail(emailId);
         break;
-      case "star":
+      case 'star':
         result = await starEmail(emailId);
         break;
-      case "unstar":
+      case 'unstar':
         result = await unstarEmail(emailId);
         break;
 
       default:
-        return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    if ("error" in result && result.error) {
+    if ('error' in result && result.error) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 

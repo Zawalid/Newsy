@@ -1,8 +1,17 @@
 {
-    "cSpell.words": [
-        "TAURI",
-        "unstar",
-        "unstarring"
-    ],
-    "eslint.useFlatConfig": true
+  "cSpell.words": ["TAURI", "unstar", "unstarring"],
+  "eslint.useFlatConfig": true,
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": true,
+    "markdown": false,
+    "scminput": false,
+    "yaml": false,
+    "python": true,
+    "javascript": true,
+    "php": false,
+    "jsonc": true,
+    "powershell": true,
+    "shellscript": false
+  }
 }

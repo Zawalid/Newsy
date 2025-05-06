@@ -57,7 +57,7 @@ function renderEmptyState(filter: string, query: string) {
   );
 }
 type EmailsListProps = {
-  emails: Email[];
+  emails: EmailMetadata[];
   isLoading: boolean;
   filter: string;
 };

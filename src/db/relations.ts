@@ -1,37 +1,38 @@
-import { relations } from "drizzle-orm/relations";
-import { users, accounts, sessions, newsletters, articles } from "./schema";
+import { relations } from 'drizzle-orm';
+import { users, accounts, sessions, newsletters, scanJobs } from './schema';
+
+// === AUTH RELATIONS ===
+
+export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accounts, { relationName: 'userAccounts' }),
+  sessions: many(sessions, { relationName: 'userSessions' }),
+  scanJobs: many(scanJobs, { relationName: 'userScanJobs' }),
+}));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, {
     fields: [accounts.userId],
     references: [users.id],
+    relationName: 'userAccounts',
   }),
-}));
-
-export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
-  sessions: many(sessions),
-  newsletters: many(newsletters),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, {
     fields: [sessions.userId],
     references: [users.id],
+    relationName: 'userSessions',
   }),
 }));
 
-export const newslettersRelations = relations(newsletters, ({ one, many }) => ({
+// === APP RELATIONS ===
+
+export const scanJobsRelations = relations(scanJobs, ({ one }) => ({
   user: one(users, {
-    fields: [newsletters.userId],
+    fields: [scanJobs.userId],
     references: [users.id],
+    relationName: 'userScanJobs',
   }),
-  articles: many(articles),
 }));
 
-export const articlesRelations = relations(articles, ({ one }) => ({
-  newsletter: one(newsletters, {
-    fields: [articles.newsletterId],
-    references: [newsletters.id],
-  }),
-}));
+export const newslettersRelations = relations(newsletters, () => ({}));

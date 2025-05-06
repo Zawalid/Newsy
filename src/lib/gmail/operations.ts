@@ -62,9 +62,7 @@ export const fetchEmailMetadataOnly = async (id: string): Promise<APIResponse<Em
       headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())?.value || '';
 
     const labels = res.data.labelIds || [];
-    const date = res.data.internalDate
-      ? new Date(parseInt(res.data.internalDate, 10)).toISOString()
-      : new Date().toISOString();
+    const date = res.data.internalDate ? new Date(parseInt(res.data.internalDate, 10)) : new Date();
 
     return {
       id,
