@@ -7,9 +7,12 @@ import { handleGmailError } from './error';
 import { extractAddressInfo, getStatusFromLabels } from './utils';
 
 // Helper function for common Gmail operations
-const performGmailOperation = async <T>(operation: (gmail: Gmail) => Promise<T>): Promise<APIResponse<T>> => {
+const performGmailOperation = async <T>(
+  operation: (gmail: Gmail) => Promise<T>,
+  userId?: string | null
+): Promise<APIResponse<T>> => {
   try {
-    const gmail = await getGmailClient();
+    const gmail = await getGmailClient(userId);
     const result = await operation(gmail);
 
     if (result !== undefined) return { data: result };
@@ -48,7 +51,10 @@ export const fetchEmail = async (emailId: string): Promise<APIResponse<Email>> =
 /**
  * Fetches only essential metadata for an email.
  */
-export const fetchEmailMetadataOnly = async (id: string): Promise<APIResponse<EmailMetadata>> => {
+export const fetchEmailMetadataOnly = async (
+  id: string,
+  userId?: string | null
+): Promise<APIResponse<EmailMetadata>> => {
   return performGmailOperation(async (gmail) => {
     const res = await gmail.users.messages.get({
       userId: 'me',
@@ -76,7 +82,7 @@ export const fetchEmailMetadataOnly = async (id: string): Promise<APIResponse<Em
       unsubscribeUrl: headerValue('List-Unsubscribe').replace(/<([^>]+)>/g, '$1'),
       listId: headerValue('List-Id'),
     };
-  });
+  }, userId);
 };
 
 /**

@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useState, useMemo, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import { Inbox, Loader2, Search, Trash2, AlertCircle, RefreshCw, CheckCircle2, X, ExternalLink } from 'lucide-react';
 
@@ -35,48 +35,80 @@ const startScan = async (): Promise<{ message: string; jobId: number }> => {
   return res.json();
 };
 
-const fetchScanStatus = async (jobId: number | null): Promise<ScanStatusResponse | null> => {
-  if (!jobId) return null;
-  const res = await fetch(`/api/scan/status?jobId=${jobId}`);
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || 'Failed to fetch scan status');
-  }
-  return res.json();
-};
-
 export function NewsletterScanner() {
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
   const [deletedNewsletters, setDeletedNewsletters] = useState<Set<string>>(new Set());
-  // const queryClient = useQueryClient();
+  const [scanStatus, setScanStatus] = useState<ScanStatusResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!activeJobId) return;
+
+    const eventSource = new EventSource(`/api/scan/status?jobId=${activeJobId}`);
+
+    // Event listeners for different SSE events
+    eventSource.addEventListener('job-status', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('SSE status update:', data);
+        setScanStatus(data);
+        setError(null);
+      } catch (e) {
+        console.error('Error parsing SSE status data:', e);
+      }
+    });
+
+    eventSource.addEventListener('job-completed', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('SSE job completed:', data);
+        setScanStatus(data);
+        setError(null);
+        eventSource.close();
+      } catch (e) {
+        console.error('Error parsing SSE completed data:', e);
+      }
+    });
+
+    eventSource.addEventListener('job-error', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.error('SSE job error:', data);
+        setError(data.message || 'An error occurred during scanning');
+        setScanStatus((prev) => (prev ? { ...prev, status: 'FAILED', error: data.message } : null));
+        eventSource.close();
+      } catch (e) {
+        console.error('Error parsing SSE error data:', e);
+      }
+    });
+
+    // Generic error handler
+    eventSource.onerror = (err) => {
+      console.error('EventSource error:', err);
+      setError('Connection error. Please try again.');
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [activeJobId]);
+
+  // Mutation for starting the scan
   const startScanMutation = useMutation({
     mutationFn: startScan,
     onSuccess: (data) => {
       console.log('Scan started, Job ID:', data.jobId);
       setActiveJobId(data.jobId);
       setDeletedNewsletters(new Set());
+      setError(null);
       toast.success('Scan started', { description: "We're now scanning your inbox for newsletters." });
     },
     onError: (error: Error) => {
       console.error('Error starting scan:', error);
+      setError(error.message);
       toast.error('Error starting scan', { description: error.message });
     },
-  });
-
-  const { data: scanStatus, error: statusError } = useQuery({
-    queryKey: ['scanStatus', activeJobId],
-    queryFn: () => fetchScanStatus(activeJobId),
-    enabled: !!activeJobId,
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (data?.status === 'COMPLETED' || data?.status === 'FAILED') {
-        return false;
-      }
-      return 1000;
-    },
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
   });
 
   // Derived state for UI display
@@ -180,7 +212,7 @@ export function NewsletterScanner() {
 
         {/* Error Message */}
         <AnimatePresence>
-          {(startScanMutation.error || statusError) && (
+          {error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -188,11 +220,7 @@ export function NewsletterScanner() {
               className='flex items-center gap-3 rounded-xl bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400'
             >
               <AlertCircle className='h-5 w-5 flex-shrink-0' />
-              <p>
-                {startScanMutation.error
-                  ? (startScanMutation.error as Error).message
-                  : (statusError as Error)?.message || 'An error occurred'}
-              </p>
+              <p>{error}</p>
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,4 +1,4 @@
 export const DEFAULT_EMAILS_DISPLAYED = 50;
-export const DEFAULT_MAX_EMAILS = 1000;
-export const DEFAULT_GMAIL_LIST_PAGE_SIZE = 100;
+export const DEFAULT_MAX_EMAILS = 100; // 5000
+export const DEFAULT_GMAIL_LIST_PAGE_SIZE = 100; // 100
 export const DEFAULT_CHUNK_SIZE = 25;

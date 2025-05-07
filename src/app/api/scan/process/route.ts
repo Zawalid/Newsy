@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       job = (await db.update(scanJobs).set({ startedAt: new Date() }).where(eq(scanJobs.id, jobId)).returning())[0];
     }
 
-    const gmail = await getGmailClient();
+    const gmail = await getGmailClient(job.userId);
     if (!gmail) throw new Error(`Could not get Gmail client for user ${job.userId}`);
 
     const listResponse = await gmail.users.messages.list({
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
           break;
         }
 
-        const results = await Promise.allSettled(idChunk.map((id) => fetchEmailMetadataOnly(id)));
+        const results = await Promise.allSettled(idChunk.map((id) => fetchEmailMetadataOnly(id, job?.userId)));
 
         for (const result of results) {
           if (job.emailsProcessedCount + processedInThisChunk >= job.totalEmailsToScan) break;

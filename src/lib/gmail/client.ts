@@ -4,12 +4,14 @@ import { getAccountByUserId } from '@/data-access/accounts';
 import { env } from '@/env';
 
 // TODO : REMOVE THIS !!!! AFTER YOU FINISH THE TESTS
-export const getGmailClient = async () => {
+export const getGmailClient = async (userId?: string | null) => {
   const session = await getSession();
 
-  if (!session || !session.user) throw new Error('Not authenticated');
+  const id = userId ? userId : session ? session.user.id : null;
 
-  const account = await getAccountByUserId(session.user.id!);
+  if (!id) throw new Error('Not authenticated');
+
+  const account = await getAccountByUserId(id);
 
   if (!account) throw new Error('Google account not found');
 
