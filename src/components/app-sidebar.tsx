@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Inbox, MessageSquareDot, Search, Settings2, Trash2 } from "lucide-react";
+import { Inbox, MessageSquareDot, Mail, Settings2, Trash2 } from "lucide-react";
 
 import { NavFavorites } from "@/components/nav-favorites";
 import { NavMain } from "@/components/nav-main";
@@ -32,16 +32,16 @@ const data = {
   ],
   navMain: [
     {
-      title: "Search",
-      url: "#",
-      icon: Search,
-    },
-    {
       title: "Inbox",
       url: "/app/inbox",
       icon: Inbox,
       badge: "10",
-      isActive: true,
+    },
+    {
+      title: "My Newsletters",
+      url: "/app/newsletters",
+      icon: Mail,
+      badge: "53",
     },
   ],
   navSecondary: [

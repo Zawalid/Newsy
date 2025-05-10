@@ -142,13 +142,18 @@ export const scanJobs = pgTable(
     emailsProcessedCount: integer('emails_processed_count').notNull().default(0),
     totalEmailsToScan: integer('total_emails_to_scan').notNull().default(0),
     inboxTotalEmails: integer('inbox_total_emails').notNull().default(0),
+    scanDepth: varchar('scan_depth', { length: 50 }).default("'standard'"),
+    smartFiltering: boolean('smart_filtering').default(true),
+    categories: jsonb().default(
+      sql`'{"primary": true, "promotions": true, "social": false, "updates": false, "forums": false}'::jsonb`
+    ),
     newslettersFoundCount: integer('newsletters_found_count').notNull().default(0),
     currentPageToken: text('current_page_token'),
     discoveredNewsletters: jsonb('discovered_newsletters')
       .$type<Newsletter[]>()
       .default(sql`'[]'::jsonb`)
       .notNull(),
-    result: jsonb('result').$type<Newsletter[]>(),
+    result: jsonb().$type<Newsletter[]>(),
     error: text('error'),
     startedAt: timestamp('started_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true })

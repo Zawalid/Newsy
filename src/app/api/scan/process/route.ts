@@ -26,16 +26,37 @@ const mergeUniqueSenders = (existing: NewNewsletter[], newSenders: NewNewsletter
   return Array.from(uniqueMap.values());
 };
 
+const buildGmailQueryString = (categories?: ScanSettings['categories'] | null): string | undefined => {
+  const queryParts: string[] = [];
+  const categoryQueryParts: string[] = [];
+
+  if (categories) {
+    if (categories.primary) categoryQueryParts.push('category:primary');
+    if (categories.promotions) categoryQueryParts.push('category:promotions');
+    if (categories.social) categoryQueryParts.push('category:social');
+    if (categories.updates) categoryQueryParts.push('category:updates');
+    if (categories.forums) categoryQueryParts.push('category:forums');
+  }
+
+  if (categoryQueryParts.length > 0 && categoryQueryParts.length < 5) {
+    queryParts.push(`(${categoryQueryParts.join(' OR ')})`);
+  }
+
+  return queryParts.length > 0 ? queryParts.join(' ') : undefined;
+};
+
 export async function POST(request: Request) {
   const { jobId } = await request.json();
-  if (!jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 });
+
+  if (!jobId || isNaN(parseInt(jobId))) {
+    return NextResponse.json({ error: 'Missing or invalid jobId' }, { status: 400 });
+  }
 
   let job: ScanJob | undefined;
   try {
     const updatedJobs = await db
       .update(scanJobs)
       .set({ status: 'PROCESSING', updatedAt: new Date() })
-      // Only process if PENDING, prevents race conditions if triggers overlap
       .where(and(eq(scanJobs.id, jobId), eq(scanJobs.status, 'PENDING')))
       .returning();
 
@@ -52,7 +73,6 @@ export async function POST(request: Request) {
     }
     job = updatedJobs[0];
 
-    // Initialize startedAt on the first processing run
     if (!job.startedAt) {
       job = (await db.update(scanJobs).set({ startedAt: new Date() }).where(eq(scanJobs.id, jobId)).returning())[0];
     }
@@ -64,6 +84,7 @@ export async function POST(request: Request) {
       userId: 'me',
       maxResults: DEFAULT_GMAIL_LIST_PAGE_SIZE,
       pageToken: job.currentPageToken ?? undefined,
+      q: buildGmailQueryString(job.categories as ScanSettings['categories']),
     });
 
     const messages = listResponse.data.messages || [];
@@ -77,7 +98,6 @@ export async function POST(request: Request) {
       const metadataChunks = chunkArray(messageIds, DEFAULT_CHUNK_SIZE);
 
       for (const idChunk of metadataChunks) {
-        // Check if we've already processed enough emails overall *before* fetching more
         if (job.emailsProcessedCount + processedInThisChunk >= job.totalEmailsToScan) {
           console.log(`Job ${jobId}: Reached scan limit (${job.totalEmailsToScan}), stopping metadata fetch.`);
           break;
@@ -92,15 +112,14 @@ export async function POST(request: Request) {
 
           if (result.status === 'fulfilled' && result.value.data) {
             const emailMeta = result.value.data;
-            if (isNewsletter(emailMeta)) {
+            if (isNewsletter(emailMeta, job.smartFiltering!)) {
               const { from, unsubscribeUrl = null } = emailMeta;
               const { name, address } = from;
 
               const faviconUrl = getFaviconFromEmail(address);
 
-              // Create potential newsletter object
               newlyFoundSenders.push({
-                id: address, // Using email ID, consider if sender address is better
+                id: address, 
                 name: name || address,
                 address,
                 unsubscribeUrl,
@@ -115,7 +134,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // 5. Update DB State
     const emailsProcessedCount = job.emailsProcessedCount + processedInThisChunk;
     const discoveredNewsletters = mergeUniqueSenders(job.discoveredNewsletters || [], newlyFoundSenders);
     const isComplete = !nextPageToken || emailsProcessedCount >= job.totalEmailsToScan;
@@ -136,7 +154,7 @@ export async function POST(request: Request) {
         `Job ${jobId}: Scan completed. Processed ${emailsProcessedCount} emails. Found ${discoveredNewsletters.length} newsletters.`
       );
     } else {
-      updateData.status = 'PENDING'; // Set back to pending for the next trigger
+      updateData.status = 'PENDING'; 
       console.log(
         `Job ${jobId}: Chunk processed. Processed ${emailsProcessedCount}/${job.totalEmailsToScan}. Found ${discoveredNewsletters.length}. Next page: ${!!nextPageToken}`
       );
@@ -144,7 +162,6 @@ export async function POST(request: Request) {
 
     await db.update(scanJobs).set(updateData).where(eq(scanJobs.id, jobId));
 
-    // 6. Re-trigger if necessary
     if (!isComplete) {
       const processUrl = `${process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin}/api/scan/process`;
       fetch(processUrl, {

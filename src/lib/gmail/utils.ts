@@ -1,3 +1,4 @@
+
 export const extractAddressInfo = (from: string): AddressBody => {
   // Common patterns: "Name <address@domain.com>" or "address@domain.com (Name)"
   const anglePattern = /^([^<]+)<([^>]+)>$/;
@@ -66,53 +67,66 @@ export const getFaviconFromEmail = (emailAddress: string): string | null => {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 };
 
-export const isNewsletter = (email: EmailMetadata): boolean => {
+export const isNewsletter = (email: EmailMetadata, useSmartFilter: boolean): boolean => {
   const { fromRaw, subject, unsubscribeUrl, listId, from } = email;
-  const address = from?.address?.toLowerCase(); // Ensure address exists and is lowercase
+  const address = from?.address?.toLowerCase();
+  const addressAfterAt = address.substring(address.indexOf('@') + 1);
 
   // --- 1. DEFINITIVE SIGNALS ---
   if (unsubscribeUrl || listId) return true;
   if (!address || !subject) return false;
 
   // --- 2. EXCLUSIONS --- common transactional/support/security emails based on sender address.
-  const excludedDomainsOrPatterns = [
-    '@google.com',
-    '.google.com',
-    '@apple.com',
-    '.apple.com',
-    '@microsoft.com',
-    '.microsoft.com',
-    '@github.com',
-    '@amazon.com',
-    '@facebook.com',
-    '@linkedin.com',
-    'support.',
-    'service.',
-    'help.',
-    'noreply.',
-    'no-reply.',
-    'donotreply.',
-    'account.',
-    'accounts.',
-    'security.',
-    'verification.',
-    'alert.',
-    'billing.',
-    'payment.',
-  ];
+  if (useSmartFilter) {
+    const excludedDomainsOrPatterns = [
+      '@google.com',
+      '.google.com',
+      '@apple.com',
+      '.apple.com',
+      '@microsoft.com',
+      '.microsoft.com',
+      '@github.com',
+      '@amazon.com',
+      '@facebook.com',
+      '@linkedin.com',
+      'support.',
+      'service.',
+      'help.',
+      'noreply.',
+      'no-reply.',
+      'donotreply.',
+      'do-not-reply.',
+      'account.',
+      'accounts.',
+      'security.',
+      'verification.',
+      'alert.',
+      'alerts.',
+      'notification.',
+      'notifications.',
+      'billing.',
+      'payment.',
+      'info.',
+      'confirm.',
+      'confirmation.',
+      'auth.',
+      'team.',
+      'admin.',
+      'status.',
+      'system.',
+    ];
 
-  const addressAfterAt = address.substring(address.indexOf('@') + 1);
-
-  for (const pattern of excludedDomainsOrPatterns) {
-    if (pattern.startsWith('@') || pattern.startsWith('.')) {
-      if (address.endsWith(pattern)) {
-        if (fromRaw && /newsletter|digest|weekly|monthly/i.test(fromRaw)) return true;
-        return false;
-      }
-    } else {
-      if (addressAfterAt.startsWith(pattern)) {
-        if (fromRaw && /newsletter|digest|weekly|monthly/i.test(fromRaw)) return true;
-        return false;
+    for (const pattern of excludedDomainsOrPatterns) {
+      if (pattern.startsWith('@') || pattern.startsWith('.')) {
+        if (address.endsWith(pattern)) {
+          if (fromRaw && /newsletter|digest|weekly|monthly/i.test(fromRaw)) return true;
+          return false;
+        }
+      } else {
+        if (addressAfterAt.startsWith(pattern)) {
+          if (fromRaw && /newsletter|digest|weekly|monthly/i.test(fromRaw)) return true;
+          return false;
+        }
       }
     }
   }
@@ -169,3 +183,4 @@ export const isNewsletter = (email: EmailMetadata): boolean => {
 
   return false;
 };
+

@@ -10,16 +10,16 @@ const getChunk = (event: string, data: any): string => `event: ${event}\ndata: $
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const jobIdParam = searchParams.get('jobId');
+  const jobId = searchParams.get('jobId');
   const userId = await getUserIdFromSession();
 
-  if (!jobIdParam || isNaN(parseInt(jobIdParam))) {
+  if (!jobId || isNaN(parseInt(jobId))) {
     return NextResponse.json({ error: 'Missing or invalid jobId' }, { status: 400 });
   }
 
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const jobIdNum = parseInt(jobIdParam);
+  const jobIdNum = parseInt(jobId);
 
   const encoder = new TextEncoder();
   let intervalId: NodeJS.Timeout | undefined;

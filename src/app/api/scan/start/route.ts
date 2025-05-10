@@ -4,13 +4,13 @@ import { db } from '@/db';
 import { scanJobs } from '@/db/schema';
 import { getUserIdFromSession } from '@/lib/auth';
 import { getGmailProfile } from '@/lib/gmail/operations';
-import { DEFAULT_MAX_EMAILS } from '@/utils/constants';
+import { DEFAULT_DEPTH_SIZES, DEFAULT_SCAN_SETTINGS } from '@/utils/constants';
 
 export async function POST(request: Request) {
   const userId = await getUserIdFromSession();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const settings: ScanSettings = (await request.json()).settings || DEFAULT_SCAN_SETTINGS;
 
-  // Check for existing active job
   const existingJob = await db.query.scanJobs.findFirst({
     where: sql`${scanJobs.userId} = ${userId} AND ${scanJobs.status} NOT IN ('COMPLETED', 'FAILED')`,
   });
@@ -19,16 +19,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Determine scan scope
     const profile = await getGmailProfile();
     if (profile.error || !profile.data) {
       console.error('Failed to get Gmail profile:', profile.error);
       return NextResponse.json({ error: 'Failed to get Gmail profile to start scan.' }, { status: 500 });
     }
     const inboxTotalEmails = profile.data.messagesTotal || 0;
-    const totalEmailsToScan = Math.min(DEFAULT_MAX_EMAILS, inboxTotalEmails); // Default can be selected from UI later
+    const totalEmailsToScan = Math.min(DEFAULT_DEPTH_SIZES[settings.scanDepth || 'standard'], inboxTotalEmails);
 
-    // Create Job
     const [newJob] = await db
       .insert(scanJobs)
       .values({
@@ -39,16 +37,16 @@ export async function POST(request: Request) {
         emailsProcessedCount: 0,
         newslettersFoundCount: 0,
         discoveredNewsletters: [],
+        ...settings,
       })
       .returning({ id: scanJobs.id });
 
     const jobId = newJob.id;
 
-    // Trigger the first processing step asynchronously
     const processUrl = `${process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin}/api/scan/process`;
     fetch(processUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' /* Add internal auth header if needed */ },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId }),
     }).catch((error) => {
       console.error(`Error triggering process for job ${jobId}:`, error);

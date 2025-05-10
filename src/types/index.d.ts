@@ -1,19 +1,24 @@
-interface Credentials {
-  refresh_token?: string | null;
-  expiry_date?: number | null;
-  access_token?: string | null;
-  token_type?: string | null;
-  id_token?: string | null;
-  scope?: string;
-}
+type ScanStatus = {
+  id: number;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  emailsProcessedCount: number;
+  totalEmailsToScan: number;
+  newslettersFoundCount: number;
+  error?: string;
+  result?: Newsletter[];
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+};
 
-interface ScanProgress {
-  scannedCount: number;
-  totalToScan: number;
-  newslettersFound: number;
-  percentComplete: number;
-  elapsedTime: number; // in seconds
-  estimatedTimeRemaining?: number; // in seconds
-  processingSpeed?: number; // emails per second
-  status: 'initializing' | 'scanning' | 'processing' | 'completed' | 'error';
+interface ScanSettings {
+  scanDepth: "quick" | "standard" | "deep"
+  smartFiltering: boolean
+  categories: {
+    primary: boolean
+    promotions: boolean
+    social: boolean
+    updates: boolean
+    forums: boolean
+  }
 }
