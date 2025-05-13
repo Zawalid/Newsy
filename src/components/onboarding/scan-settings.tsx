@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DEFAULT_SCAN_SETTINGS } from '@/utils/constants';
 
-interface ScanSettingsSheetProps {
+interface ScanSettingsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentSettings: ScanSettings;
@@ -34,12 +34,12 @@ const CATEGORY_OPTIONS: { id: keyof ScanSettings['categories']; label: string }[
   { id: 'forums', label: 'Forums Tab' },
 ];
 
-export default function ScanSettingsSheet({
+export function ScanSettings({
   open,
   onOpenChange,
   currentSettings = DEFAULT_SCAN_SETTINGS,
   onSaveSettings,
-}: ScanSettingsSheetProps) {
+}: ScanSettingsProps) {
   const [localSettings, setLocalSettings] = useState<ScanSettings>(currentSettings);
 
   useEffect(() => {

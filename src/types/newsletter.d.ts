@@ -11,6 +11,7 @@ declare global {
     newslettersFoundCount: number;
     error?: string;
     result?: Newsletter[];
+    discoveredNewsletters: Newsletter[];
     startedAt: string;
     updatedAt: string;
     completedAt?: string;

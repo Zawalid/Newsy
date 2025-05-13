@@ -36,6 +36,7 @@ const getInitialStatusForScan = (status: ScanStatus, settings?: Partial<ScanSett
   startedAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   totalEmailsToScan: DEFAULT_DEPTH_SIZES[settings?.scanDepth || 'standard'],
+  discoveredNewsletters : []
 });
 
 export const useScanner = () => {

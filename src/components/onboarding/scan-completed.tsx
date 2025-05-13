@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { motion } from 'motion/react';
@@ -6,7 +5,7 @@ import { ArrowRight, Info, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { NoNewslettersFound } from './no-newsletters-found';
-import { CATEGORY_COLORS } from '@/data-access/sample.data';
+import { NewsletterItem } from './scanning-components';
 
 interface ScanCompletedProps {
   scanResponse: ScanResponse;
@@ -16,9 +15,8 @@ interface ScanCompletedProps {
 export function ScanCompleted({ scanResponse, onViewNewsletters }: ScanCompletedProps) {
   const newslettersFound = scanResponse?.newslettersFoundCount || 0;
   const emailsProcessed = scanResponse?.emailsProcessedCount || 0;
-  const sampleNewsletters = scanResponse?.result?.slice(0, 3) || [];
+  const sampleNewsletters = scanResponse?.result?.slice(0, 4) || [];
 
-  
   if (newslettersFound === 0) {
     return <NoNewslettersFound emailsProcessed={emailsProcessed} onContinue={onViewNewsletters} />;
   }
@@ -69,47 +67,12 @@ export function ScanCompleted({ scanResponse, onViewNewsletters }: ScanCompleted
             <div className='grid grid-cols-2 gap-3'>
               {sampleNewsletters.map((newsletter, index) => (
                 <motion.div
-                  key={index}
+                  key={newsletter.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 * Math.min(index, 5) + 0.5 }}
-                  className='flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'
                 >
-                  <div className='flex-shrink-0'>
-                    {newsletter.faviconUrl ? (
-                      <div className='relative h-10 w-10 overflow-hidden rounded-md border border-slate-200 dark:border-slate-700'>
-                        <img
-                          src={newsletter.faviconUrl || '/placeholder.svg'}
-                          alt={`${newsletter.name} logo`}
-                          className='h-full w-full object-cover'
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src =
-                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'%3E%3Crect width='20' height='16' x='2' y='4' rx='2'/%3E%3Cpath d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7'/%3E%3C/svg%3E";
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className='flex h-10 w-10 items-center justify-center rounded-md bg-gradient-to-br from-teal-500 to-teal-600 text-sm font-bold text-white dark:from-teal-600 dark:to-teal-700'>
-                        {newsletter.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className='min-w-0 flex-grow'>
-                    <div className='flex items-start justify-between gap-2'>
-                      <div>
-                        <h3 className='truncate font-medium text-slate-900 dark:text-white'>{newsletter.name}</h3>
-                        <p className='truncate text-xs text-slate-500 dark:text-slate-400'>{newsletter.address}</p>
-                      </div>
-                      {newsletter.category && (
-                        <div
-                          className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs ${CATEGORY_COLORS[newsletter.category]}`}
-                        >
-                          {newsletter.category}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <NewsletterItem newsletter={newsletter} />
                 </motion.div>
               ))}
             </div>
@@ -129,8 +92,8 @@ export function ScanCompleted({ scanResponse, onViewNewsletters }: ScanCompleted
           <div>
             <p className='font-medium'>Smart Detection</p>
             <p className='mt-1'>
-              Newsy uses AI to identify newsletters. You can help improve our detection by marking any misclassified
-              items in your dashboard.
+              Newsy uses pattern recognition to identify newsletters. You can help improve our detection by marking any
+              misclassified items in your dashboard.
             </p>
           </div>
         </motion.div>

@@ -5,3 +5,7 @@ export * from './unsubscribe-step';
 export * from './scan-initiation-step';
 export * from './scanning';
 export * from './scan-completed';
+export * from './scan-cancelled';
+export * from './scan-error';
+export * from './scan-settings';
+export * from './use-scanner';

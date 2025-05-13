@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import ReactConfetti from 'react-confetti';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-
 import {
   WelcomeStep,
   DiscoveryStep,
@@ -14,12 +13,12 @@ import {
   ScanInitiationStep,
   Scanning,
   ScanCompleted,
-} from './steps';
-import ScanSettings from './scan-settings';
-import { useScanner } from './use-scanner';
-import { ScanError } from './scan-error';
+  ScanSettings,
+  useScanner,
+  ScanError,
+  ScanCancelled,
+} from '.';
 import { DEFAULT_SCAN_SETTINGS } from '@/utils/constants';
-import { ScanCancelled } from './scan-cancelled';
 
 const TOTAL_FEATURE_STEPS = 4;
 const SCAN_INITIATION_STEP_NUMBER = TOTAL_FEATURE_STEPS + 1;
