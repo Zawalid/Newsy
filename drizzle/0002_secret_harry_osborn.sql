@@ -1,1 +1,0 @@
-ALTER TABLE "scan_jobs" ADD COLUMN "inbox_total_emails" integer DEFAULT 0 NOT NULL;

@@ -1,5 +1,5 @@
 {
-  "id": "f1fef6c5-ffef-450d-90cb-2b88cb7e7b0c",
+  "id": "75f23321-5471-41e0-a2ea-34886dab6b3d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -79,14 +79,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         }
       },
       "indexes": {
@@ -176,14 +176,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -212,7 +212,9 @@
         "newsletters_address_unique": {
           "name": "newsletters_address_unique",
           "nullsNotDistinct": false,
-          "columns": ["address"]
+          "columns": [
+            "address"
+          ]
         }
       },
       "policies": {},
@@ -237,10 +239,10 @@
         },
         "status": {
           "name": "status",
-          "type": "varchar(50)",
+          "type": "scan_job_status",
+          "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'PENDING'"
+          "notNull": false
         },
         "emails_processed_count": {
           "name": "emails_processed_count",
@@ -256,6 +258,34 @@
           "notNull": true,
           "default": 0
         },
+        "inbox_total_emails": {
+          "name": "inbox_total_emails",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "scan_depth": {
+          "name": "scan_depth",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'''standard'''"
+        },
+        "smart_filtering": {
+          "name": "smart_filtering",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "categories": {
+          "name": "categories",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{\"primary\": true, \"promotions\": true, \"social\": false, \"updates\": false, \"forums\": false}'::jsonb"
+        },
         "newsletters_found_count": {
           "name": "newsletters_found_count",
           "type": "integer",
@@ -269,8 +299,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "discovered_senders": {
-          "name": "discovered_senders",
+        "discovered_newsletters": {
+          "name": "discovered_newsletters",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
@@ -290,20 +320,20 @@
         },
         "started_at": {
           "name": "started_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "completed_at": {
           "name": "completed_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         }
@@ -350,7 +380,7 @@
             }
           ],
           "isUnique": true,
-          "where": "status NOT IN ('COMPLETED', 'FAILED')",
+          "where": "\"scan_jobs\".\"status\" NOT IN ('COMPLETED', 'FAILED', 'CANCELLED')",
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -408,14 +438,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         }
       },
       "indexes": {
@@ -497,14 +527,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         }
       },
       "indexes": {
@@ -564,14 +594,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
+          "default": "now()"
         }
       },
       "indexes": {
@@ -605,7 +635,20 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.scan_job_status": {
+      "name": "scan_job_status",
+      "schema": "public",
+      "values": [
+        "PREPARING",
+        "PENDING",
+        "PROCESSING",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},

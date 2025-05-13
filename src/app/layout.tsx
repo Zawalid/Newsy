@@ -30,10 +30,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ThemeProvider attribute='class' defaultTheme='light' enableSystem disableTransitionOnChange>
           <Providers>{children}</Providers>
           <Toaster
-            position='top-right'
-            icons={{
-              loading: <LoaderCircle className='text-muted-foreground animate-spin text-lg' />,
-            }}
+            position='bottom-right'
+            icons={{ loading: <LoaderCircle className='text-muted-foreground animate-spin text-lg' /> }}
           />
         </ThemeProvider>
       </body>

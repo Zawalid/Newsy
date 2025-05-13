@@ -40,7 +40,11 @@ export async function GET(request: Request) {
       // Returns true if stream should be closed
       const fetchAndSendData = async (): Promise<boolean> => {
         if (!userId) {
-          controller.enqueue(encoder.encode(getChunk('auth-error', { message: 'Unauthorized' })));
+          controller.enqueue(
+            encoder.encode(
+              getChunk('auth-error', { message: 'Your session has expired. Please sign in again to continue.' })
+            )
+          );
           return true;
         }
         try {
@@ -61,7 +65,12 @@ export async function GET(request: Request) {
 
           if (!job) {
             controller.enqueue(
-              encoder.encode(getChunk('job-error', { message: 'Scan job not found or access denied' }))
+              encoder.encode(
+                getChunk('job-error', {
+                  message:
+                    "We couldn't find this scan. It may have been deleted or you don't have permission to view it.",
+                })
+              )
             );
             return true;
           }
@@ -79,7 +88,11 @@ export async function GET(request: Request) {
         } catch (error: any) {
           console.error(`SSE Error (Job ${jobIdNum}): Failed to fetch scan status - ${error.message}`); // Necessary log
           controller.enqueue(
-            encoder.encode(getChunk('job-error', { message: 'Internal server error while fetching status.' }))
+            encoder.encode(
+              getChunk('job-error', {
+                message: "We're having trouble getting your scan status. Please try refreshing the page.",
+              })
+            )
           );
           return true;
         }

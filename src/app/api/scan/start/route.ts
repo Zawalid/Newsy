@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, notInArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { scanJobs } from '@/db/schema';
 import { getUserIdFromSession } from '@/lib/auth';
@@ -8,21 +8,30 @@ import { DEFAULT_DEPTH_SIZES, DEFAULT_SCAN_SETTINGS } from '@/utils/constants';
 
 export async function POST(request: Request) {
   const userId = await getUserIdFromSession();
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!userId) return NextResponse.json({ error: 'Please sign in to start a scan' }, { status: 401 });
   const settings: ScanSettings = (await request.json()).settings || DEFAULT_SCAN_SETTINGS;
 
   const existingJob = await db.query.scanJobs.findFirst({
-    where: sql`${scanJobs.userId} = ${userId} AND ${scanJobs.status} NOT IN ('COMPLETED', 'FAILED')`,
+    where: and(eq(scanJobs.userId, userId), notInArray(scanJobs.status, ['COMPLETED', 'FAILED', 'CANCELLED'])),
   });
   if (existingJob) {
-    return NextResponse.json({ error: 'Scan already in progress', jobId: existingJob.id }, { status: 409 });
+    return NextResponse.json(
+      {
+        error: 'You already have a scan in progress. You can view its status or cancel it before starting a new one.',
+        jobId: existingJob.id,
+      },
+      { status: 409 }
+    );
   }
 
   try {
     const profile = await getGmailProfile();
     if (profile.error || !profile.data) {
       console.error('Failed to get Gmail profile:', profile.error);
-      return NextResponse.json({ error: 'Failed to get Gmail profile to start scan.' }, { status: 500 });
+      return NextResponse.json(
+        { error: "We couldn't access your Gmail account. Please check your Google permissions and try again." },
+        { status: 500 }
+      );
     }
     const inboxTotalEmails = profile.data.messagesTotal || 0;
     const totalEmailsToScan = Math.min(DEFAULT_DEPTH_SIZES[settings.scanDepth || 'standard'], inboxTotalEmails);
@@ -51,15 +60,18 @@ export async function POST(request: Request) {
     }).catch((error) => {
       console.error(`Error triggering process for job ${jobId}:`, error);
       db.update(scanJobs)
-        .set({ status: 'FAILED', error: 'Failed to trigger initial processing step.' })
+        .set({ status: 'FAILED', error: "We couldn't start processing your emails. Please try again later." })
         .where(eq(scanJobs.id, jobId))
         .catch((e) => console.error('Failed to mark job as failed after trigger error:', e));
     });
 
-    return NextResponse.json({ message: 'Scan initiated successfully', jobId });
+    return NextResponse.json({
+      message: "Your scan has been started successfully. We'll show results as we find newsletters in your inbox.",
+      jobId,
+    });
   } catch (error: any) {
     console.error('Error initiating scan:', error);
-    const errorMessage = error.message || 'Failed to initiate scan';
+    const errorMessage = error.message || "We couldn't start your scan right now. Please try again later.";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

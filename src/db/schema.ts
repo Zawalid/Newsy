@@ -9,27 +9,30 @@ import {
   integer,
   jsonb,
   index,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
+import {  sql } from 'drizzle-orm';
+import { SCAN_JOB_STATUS } from '@/utils/constants';
+
+// === ENUMS ===
+export const statusEnum = pgEnum('scan_job_status', SCAN_JOB_STATUS);
 
 // === AUTH SCHEMA ===
 
 export const users = pgTable(
   'users',
   {
-    id: text('id')
+    id: text()
       .primaryKey()
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
     name: text().notNull(),
     email: text().notNull(),
-    emailVerified: boolean('email_verified').default(false).notNull(),
+    emailVerified: boolean().default(false).notNull(),
     image: text(),
-    createdAt: timestamp('created_at')
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp('updated_at')
-      .default(sql`CURRENT_TIMESTAMP`)
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
@@ -39,25 +42,23 @@ export const users = pgTable(
 export const accounts = pgTable(
   'accounts',
   {
-    id: text('id')
+    id: text()
       .primaryKey()
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text('user_id'),
-    accountId: text('account_id').notNull(),
-    providerId: text('provider_id').notNull(),
-    accessToken: text('access_token'),
-    refreshToken: text('refresh_token'),
-    idToken: text('id_token'),
-    accessTokenExpiresAt: timestamp('access_token_expires_at'),
-    refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
-    scope: text('scope'),
-    password: text('password'),
-    createdAt: timestamp('created_at')
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp('updated_at')
-      .default(sql`CURRENT_TIMESTAMP`)
+    userId: text(),
+    accountId: text().notNull(),
+    providerId: text().notNull(),
+    accessToken: text(),
+    refreshToken: text(),
+    idToken: text(),
+    accessTokenExpiresAt: timestamp(),
+    refreshTokenExpiresAt: timestamp(),
+    scope: text(),
+    password: text(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
@@ -70,17 +71,15 @@ export const accounts = pgTable(
 export const sessions = pgTable(
   'sessions',
   {
-    id: text('id').primaryKey().notNull(),
-    expiresAt: timestamp('expires_at').notNull(),
-    token: text('token').notNull(),
-    userId: text('user_id'),
-    ipAddress: text('ip_address'),
-    userAgent: text('user_agent'),
-    createdAt: timestamp('created_at')
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp('updated_at')
-      .default(sql`CURRENT_TIMESTAMP`)
+    id: text().primaryKey().notNull(),
+    expiresAt: timestamp().notNull(),
+    token: text().notNull(),
+    userId: text(),
+    ipAddress: text(),
+    userAgent: text(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
@@ -96,12 +95,10 @@ export const verifications = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     identifier: text().notNull(),
     value: text().notNull(),
-    expiresAt: timestamp('expires_at').notNull(),
-    createdAt: timestamp('created_at')
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp('updated_at')
-      .default(sql`CURRENT_TIMESTAMP`)
+    expiresAt: timestamp().notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
@@ -113,61 +110,59 @@ export const verifications = pgTable(
 export const newsletters = pgTable(
   'newsletters',
   {
-    id: text('id')
+    id: text()
       .primaryKey()
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
-    name: text('name').notNull(),
-    address: text('address').notNull().unique(),
-    faviconUrl: text('favicon_url'),
-    unsubscribeUrl: text('unsubscribe_url'),
-    rssUrl: text('rss_url'),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    name: text().notNull(),
+    address: text().notNull().unique(),
+    faviconUrl: text(),
+    unsubscribeUrl: text(),
+    rssUrl: text(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [
-    index('newsletters_address_idx').on(table.address), // Index still useful even with unique constraint for some query plans
-  ]
+  (table) => [index('newsletters_address_idx').on(table.address)]
 );
 
 export const scanJobs = pgTable(
   'scan_jobs',
   {
-    id: serial('id').primaryKey(),
-    userId: text('user_id'),
-    status: varchar('status', { length: 50 }).notNull().default('PENDING'),
-    emailsProcessedCount: integer('emails_processed_count').notNull().default(0),
-    totalEmailsToScan: integer('total_emails_to_scan').notNull().default(0),
-    inboxTotalEmails: integer('inbox_total_emails').notNull().default(0),
-    scanDepth: varchar('scan_depth', { length: 50 }).default("'standard'"),
-    smartFiltering: boolean('smart_filtering').default(true),
+    id: serial().primaryKey(),
+    userId: text(),
+    status: statusEnum(),
+    emailsProcessedCount: integer().notNull().default(0),
+    totalEmailsToScan: integer().notNull().default(0),
+    inboxTotalEmails: integer().notNull().default(0),
+    scanDepth: varchar({ length: 50 }).default("'standard'"),
+    smartFiltering: boolean().default(true),
     categories: jsonb().default(
       sql`'{"primary": true, "promotions": true, "social": false, "updates": false, "forums": false}'::jsonb`
     ),
-    newslettersFoundCount: integer('newsletters_found_count').notNull().default(0),
-    currentPageToken: text('current_page_token'),
-    discoveredNewsletters: jsonb('discovered_newsletters')
+    newslettersFoundCount: integer().notNull().default(0),
+    currentPageToken: text(),
+    discoveredNewsletters: jsonb()
       .$type<Newsletter[]>()
       .default(sql`'[]'::jsonb`)
       .notNull(),
     result: jsonb().$type<Newsletter[]>(),
-    error: text('error'),
-    startedAt: timestamp('started_at', { withTimezone: true }),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
+    error: text(),
+    startedAt: timestamp(),
+    updatedAt: timestamp()
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
-    completedAt: timestamp('completed_at', { withTimezone: true }),
+    completedAt: timestamp(),
   },
   (table) => [
     index('scan_jobs_user_id_idx').on(table.userId),
     index('scan_jobs_status_idx').on(table.status),
     uniqueIndex('scan_jobs_active_user_constraint')
       .on(table.userId)
-      .where(sql`status NOT IN ('COMPLETED', 'FAILED')`),
+      .where(sql`${table.status} NOT IN ('COMPLETED', 'FAILED', 'CANCELLED')`),
   ]
 );
 

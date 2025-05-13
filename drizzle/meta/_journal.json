@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1746487850958,
-      "tag": "0000_parallel_spot",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1746487882115,
-      "tag": "0001_spooky_miek",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1746489990077,
-      "tag": "0002_secret_harry_osborn",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1746913864300,
-      "tag": "0003_conscious_christian_walker",
+      "when": 1747006861613,
+      "tag": "0000_petite_tarot",
       "breakpoints": true
     }
   ]

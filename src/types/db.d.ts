@@ -25,7 +25,7 @@ declare global {
   type NewSession = NewSessionType;
 
   // Newsletter type
-  type Newsletter = NewsletterType;
+  type Newsletter = NewsletterType & { category?: string };
   type NewNewsletter = NewNewsletterType;
 
   // ScanJob type

@@ -1,110 +1,172 @@
 import { DEFAULT_DEPTH_SIZES } from '@/utils/constants';
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-const startScan = async (settings: ScanSettings): Promise<{ message: string; jobId: number }> => {
-  const res = await fetch('/api/scan/start', { method: 'POST', body: JSON.stringify({ settings }) });
+const startScanAPI = async (settings: ScanSettings): Promise<{ message: string; jobId: number }> => {
+  const res = await fetch('/api/scan/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ settings }),
+  });
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || 'Failed to start scan');
+    throw new Error(errorData.error || 'Unable to start your inbox scan. Please try again.');
   }
   return res.json();
 };
 
-export const useScanner = (settings: ScanSettings) => {
-  const [activeJobId, setActiveJobId] = useState<number | null>(null);
-  const [scanStatus, setScanStatus] = useState<ScanStatus | null>();
-  const [error, setError] = useState<string | null>(null);
+const cancelScanAPI = async (jobId: number): Promise<{ message: string; jobId: number }> => {
+  const res = await fetch('/api/scan/cancel', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jobId }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Unable to cancel your scan. Please refresh the page and try again.');
+  }
+  return res.json();
+};
+
+const getInitialStatusForScan = (status: ScanStatus, settings?: Partial<ScanSettings>): ScanResponse => ({
+  id: 0,
+  status,
+  emailsProcessedCount: 0,
+  newslettersFoundCount: 0,
+  startedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  totalEmailsToScan: DEFAULT_DEPTH_SIZES[settings?.scanDepth || 'standard'],
+});
+
+export const useScanner = () => {
+  const [jobId, setJobId] = useState<number | null>(null);
+  const [scanResponse, setScanJobResponse] = useState<ScanResponse | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const eventSourceRef = useRef<EventSource | null>(null);
+
+  const handleError = useCallback((errorMessage: string, errorStatus: ScanStatus = 'FAILED') => {
+    setScanJobResponse((prev) => ({
+      ...(prev || getInitialStatusForScan(errorStatus)),
+      status: errorStatus,
+      error: errorMessage,
+      completedAt: new Date().toISOString(),
+    }));
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    setIsScanning(false);
+  }, []);
+
+  const resetScan = useCallback(() => {
+    setScanJobResponse(null);
+    setJobId(null);
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    setIsScanning(false);
+  }, []);
 
   const startScanMutation = useMutation({
-    mutationFn: () => startScan(settings),
-    onSuccess: (data) => {
-      console.log('Scan started, Job ID:', data.jobId);
-      setActiveJobId(data.jobId);
-      setError(null);
-      //   toast.success('Scan started', { description: "We're now scanning your inbox for newsletters." });
+    mutationFn: (settings: ScanSettings) => startScanAPI(settings),
+    onSuccess: (data, variables) => {
+      resetScan();
+      setJobId(data.jobId);
+      setScanJobResponse({ ...getInitialStatusForScan('PENDING', variables), id: data.jobId });
+      setIsScanning(true);
     },
     onError: (error: Error) => {
-      console.error('Error starting scan:', error);
-      setError(error.message);
-      setIsScanning(false);
-      //   toast.error('Error starting scan', { description: error.message });
+      handleError(
+        error.message || "We couldn't start your scan. Please try again or contact support if the issue persists."
+      );
     },
   });
 
+  const cancelScanMutation = useMutation({
+    mutationFn: (currentJobId: number) => cancelScanAPI(currentJobId),
+    onSuccess: () => handleError('Scan cancelled by user.', 'CANCELLED'),
+    onError: (error: Error) =>
+      handleError(error.message || "We couldn't cancel your scan. Please refresh the page and try again."),
+  });
+
   useEffect(() => {
-    if (!activeJobId) return;
-
-    const eventSource = new EventSource(`/api/scan/status?jobId=${activeJobId}`);
-
-    eventSource.addEventListener('job-status', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setScanStatus(data);
-        setError(null);
-      } catch (e) {
-        console.error('Error parsing SSE status data:', e);
-        setError('Error parsing SSE status data');
-        eventSource.close();
+    if (!jobId) {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
-    });
+      setIsScanning(false);
+      return;
+    }
 
-    eventSource.addEventListener('job-completed', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setScanStatus(data);
-        setError(null);
+    if (eventSourceRef.current) eventSourceRef.current.close();
+
+    const source = new EventSource(`/api/scan/status?jobId=${jobId}`);
+    eventSourceRef.current = source;
+    setIsScanning(true);
+
+    const onDataReceived = (data: ScanResponse) => {
+      setScanJobResponse(data);
+      if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(data.status!)) {
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+          eventSourceRef.current = null;
+        }
         setIsScanning(false);
-        eventSource.close();
-      } catch (e) {
-        console.error('Error parsing SSE completed data:', e);
-        setError('Error parsing SSE status data');
-        eventSource.close();
       }
-    });
+    };
 
-    eventSource.addEventListener('job-error', (event) => {
+    const setupEventListener = (eventType: string) => {
+      source.addEventListener(eventType, (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data);
+          onDataReceived(data);
+        } catch (e) {
+          console.log(e);
+          handleError('We had trouble processing the scan results. Please refresh the page and try again.');
+        }
+      });
+    };
+
+    ['job-status', 'job-completed', 'job-failed', 'job-cancelled'].forEach(setupEventListener);
+
+    source.addEventListener('job-error', (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-        setError(data.message || 'An error occurred during scanning');
-        setScanStatus((prev) => (prev ? { ...prev, status: 'FAILED', error: data.message } : null));
-        eventSource.close();
+        handleError(data.message || 'There was an issue with your scan. Please try again later.');
       } catch (e) {
-        console.error('Error parsing SSE error data:', e);
-        setError('Error parsing SSE status data');
-        eventSource.close();
+        console.log(e);
+        handleError('We encountered an unexpected error. Please refresh the page and try again.');
       }
     });
 
-    // Generic error handler
-    eventSource.onerror = (err) => {
-      console.error('EventSource error:', err);
-      setError('An error occurred during scanning. Please try again.');
-      eventSource.close();
+    source.onerror = () => {
+      if (eventSourceRef.current && isScanning)
+        handleError('We lost connection to the scan server. Please check your internet connection and try again.');
     };
 
     return () => {
-      eventSource.close();
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
     };
-  }, [activeJobId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
 
   return {
-    startScan: () => {
-      setScanStatus({
-        id: 0,
-        status: 'PENDING',
-        emailsProcessedCount: 0,
-        newslettersFoundCount: 0,
-        totalEmailsToScan: DEFAULT_DEPTH_SIZES[settings.scanDepth || 'standard'],
-        startedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      startScanMutation.mutate();
-      setIsScanning(true);
+    startScan: (settings: ScanSettings) => {
+      setScanJobResponse(getInitialStatusForScan('PREPARING', settings));
+      startScanMutation.mutate(settings);
     },
-    scanStatus,
-    error,
+    cancelScan: () => {
+      if (jobId) cancelScanMutation.mutate(jobId);
+      else setIsScanning(false);
+    },
+    resetScan,
+    scanResponse,
     isScanning,
+    jobId,
   };
 };

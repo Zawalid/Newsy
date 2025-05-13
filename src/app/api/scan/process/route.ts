@@ -7,7 +7,6 @@ import { fetchEmailMetadataOnly } from '@/lib/gmail/operations';
 import { getFaviconFromEmail, isNewsletter } from '@/lib/gmail/utils';
 import { DEFAULT_GMAIL_LIST_PAGE_SIZE, DEFAULT_CHUNK_SIZE } from '@/utils/constants';
 
-// Helper to chunk arrays (from your original code)
 const chunkArray = <T>(arr: T[], size: number): T[][] =>
   Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size));
 
@@ -49,7 +48,7 @@ export async function POST(request: Request) {
   const { jobId } = await request.json();
 
   if (!jobId || isNaN(parseInt(jobId))) {
-    return NextResponse.json({ error: 'Missing or invalid jobId' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid scan ID provided. Please start a new scan.' }, { status: 400 });
   }
 
   let job: ScanJob | undefined;
@@ -63,13 +62,12 @@ export async function POST(request: Request) {
     if (updatedJobs.length === 0) {
       // Could be already processing, completed, failed, or non-existent
       console.log(`Job ${jobId} not found or not in PENDING state. Skipping processing.`);
-      // Attempt to fetch to see current status for logging/debugging
       const currentJob = await db.query.scanJobs.findFirst({
         where: eq(scanJobs.id, jobId),
         columns: { status: true },
       });
       console.log(`Current status of job ${jobId}: ${currentJob?.status || 'Not Found'}`);
-      return NextResponse.json({ message: 'Job not processed (not pending or not found)' });
+      return NextResponse.json({ message: 'Your scan is already being processed or has finished.' });
     }
     job = updatedJobs[0];
 
@@ -78,7 +76,9 @@ export async function POST(request: Request) {
     }
 
     const gmail = await getGmailClient(job.userId);
-    if (!gmail) throw new Error(`Could not get Gmail client for user ${job.userId}`);
+    if (!gmail) {
+      throw new Error('We couldn\'t access your Gmail account. Please check your Google permissions and try again.');
+    }
 
     const listResponse = await gmail.users.messages.list({
       userId: 'me',
@@ -168,21 +168,52 @@ export async function POST(request: Request) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId }),
-      }).catch((error) => console.error(`Error triggering next chunk for job ${jobId}:`, error));
+      }).catch((error) => {
+        console.error(`Error triggering next chunk for job ${jobId}:`, error);
+        // Update the job with an error about continuation
+        db.update(scanJobs)
+          .set({ 
+            error: 'We had trouble processing all your emails. The scan results may be incomplete.',
+            status: 'FAILED'
+          })
+          .where(eq(scanJobs.id, jobId))
+          .catch(e => console.error('Failed to update job after continuation error:', e));
+      });
     }
 
-    return NextResponse.json({ message: `Job ${jobId} chunk processed.` });
+    return NextResponse.json({ 
+      message: isComplete 
+        ? 'Your scan has completed successfully. Showing all newsletters we found.' 
+        : 'Processing your emails. We\'ll continue to update as we find more newsletters.'
+    });
   } catch (error: any) {
     console.error(`Error processing job ${jobId}:`, error);
+    
+    let userFriendlyMessage = 'We\'re having trouble scanning your inbox. Please try again later.';
+    
+    // Provide more specific messages for common errors
+    if (error.message?.includes('Gmail')) {
+      userFriendlyMessage = 'We couldn\'t access your Gmail account. Please check your Google permissions and try again.';
+    } else if (error.message?.includes('rate limit') || error.message?.includes('quota')) {
+      userFriendlyMessage = 'We\'ve reached the limit for Gmail requests. Please wait a few minutes and try again.';
+    } else if (error.message?.includes('token') || error.message?.includes('auth')) {
+      userFriendlyMessage = 'Your Google login has expired. Please sign in again to continue scanning.';
+    }
+    
     if (job) {
       await db
         .update(scanJobs)
-        .set({ status: 'FAILED', error: error.message || 'Unknown processing error', updatedAt: new Date() })
+        .set({ 
+          status: 'FAILED', 
+          error: userFriendlyMessage, 
+          updatedAt: new Date(),
+          completedAt: new Date()
+        })
         .where(eq(scanJobs.id, jobId));
     }
 
     return NextResponse.json(
-      { message: `Job ${jobId} failed during processing.`, error: error.message },
+      { message: 'Your scan couldn\'t be completed.', error: userFriendlyMessage },
       { status: 200 }
     );
   }

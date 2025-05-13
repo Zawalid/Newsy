@@ -1,1 +1,0 @@
-ALTER TABLE "scan_jobs" RENAME COLUMN "discovered_senders" TO "discovered_newsletters";
