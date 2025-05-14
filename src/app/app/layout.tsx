@@ -1,6 +1,7 @@
 "use client";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import {OnboardingController} from "@/components/onboarding/onboarding-controller";
 import {
   BreadcrumbPage,
   Breadcrumb,
@@ -56,6 +57,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </header>
         <div className="flex flex-1 flex-col gap-4">{children}</div>
       </SidebarInset>
+      <OnboardingController />
     </SidebarProvider>
   );
 }

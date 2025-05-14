@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { getSession } from '@/lib/auth';
-import { getAccountByUserId } from '@/data-access/accounts';
+import { getAccountByUserId } from '@/data-access/users';
 import { env } from '@/env';
 
 // TODO : REMOVE THIS !!!! AFTER YOU FINISH THE TESTS

@@ -19,6 +19,7 @@ import {
   ScanCancelled,
 } from '.';
 import { DEFAULT_SCAN_SETTINGS } from '@/utils/constants';
+import { markOnboardingFlowCompleted, markScanAsSkippedDuringOnboarding } from '@/lib/action/onboarding';
 
 const TOTAL_FEATURE_STEPS = 4;
 const SCAN_INITIATION_STEP_NUMBER = TOTAL_FEATURE_STEPS + 1;
@@ -81,11 +82,17 @@ export default function OnboardingModal() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, showScanSettings, isScanning, isScanTerminal, handleNext, handleBack]);
 
-  const handleSkipScanAndGoToApp = useCallback(() => {
+  const handleSkipScanAndGoToApp = useCallback(async () => {
     if (isScanning) cancelScan();
     resetScan();
-    router.replace('/app');
     setIsOpen(false);
+    try {
+      await markScanAsSkippedDuringOnboarding();
+    } catch (error) {
+      console.error('Failed to mark scan as skipped:', error);
+    }
+
+    router.replace('/app/newsletters');
   }, [isScanning, cancelScan, resetScan, router]);
 
   const handleRestartScan = useCallback(() => {
@@ -104,10 +111,15 @@ export default function OnboardingModal() {
       return (
         <ScanCompleted
           scanResponse={scanResponse!}
-          onViewNewsletters={() => {
+          onViewNewsletters={async () => {
             resetScan();
-            router.replace('/app/newsletters');
             setIsOpen(false);
+            try {
+              await markOnboardingFlowCompleted();
+            } catch (error) {
+              console.error('Failed to mark onboarding as completed:', error);
+            }
+            router.replace('/app/newsletters');
           }}
         />
       );
@@ -147,13 +159,7 @@ export default function OnboardingModal() {
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      // onOpenChange={(openState) => {
-      //   if (!openState) handleSkipScanAndGoToApp();
-      //   else setIsOpen(openState);
-      // }}
-    >
+    <Dialog open={isOpen}>
       <DialogTitle className='sr-only'>Newsy Onboarding</DialogTitle>
       <DialogContent className='h-[80vh] max-h-[800px] w-[80vw] max-w-[1200px] overflow-hidden rounded-2xl border border-slate-200 p-0 shadow-xl dark:border-slate-800 [&>button]:hidden'>
         <div className='flex h-full flex-col'>

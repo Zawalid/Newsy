@@ -11,7 +11,7 @@ import {
   index,
   pgEnum,
 } from 'drizzle-orm/pg-core';
-import {  sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { SCAN_JOB_STATUS } from '@/utils/constants';
 
 // === ENUMS ===
@@ -30,6 +30,8 @@ export const users = pgTable(
     email: text().notNull(),
     emailVerified: boolean().default(false).notNull(),
     image: text(),
+    hasOnboarded: boolean().default(false).notNull(),
+    hasSkippedOnboardingScan: boolean().default(false).notNull(),
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp()
       .defaultNow()

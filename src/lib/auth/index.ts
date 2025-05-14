@@ -1,8 +1,8 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { nextCookies } from 'better-auth/next-js';
 import { db } from '@/db';
 import { env } from '@/env';
-import { nextCookies } from 'better-auth/next-js';
 import { headers } from 'next/headers';
 import { accounts, users, sessions, verifications } from '@/db/schema';
 
@@ -10,12 +10,7 @@ export const auth = betterAuth({
   appName: 'Newsy',
   database: drizzleAdapter(db, {
     provider: 'pg',
-    schema: {
-      user: users,
-      account: accounts,
-      session: sessions,
-      verification: verifications,
-    },
+    schema: { user: users, account: accounts, session: sessions, verification: verifications },
   }),
   socialProviders: {
     google: {
@@ -34,6 +29,12 @@ export const auth = betterAuth({
   },
   account: { accountLinking: { trustedProviders: ['google'] } },
   //   databaseHooks: { user: { create: {} } },
+  user: {
+    additionalFields: {
+      hasOnboarded: { type: 'boolean', defaultValue: false },
+      hasSkippedOnboardingScan: { type: 'boolean', defaultValue: false },
+    },
+  },
   plugins: [nextCookies()],
 });
 
