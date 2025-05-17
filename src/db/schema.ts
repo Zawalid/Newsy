@@ -12,10 +12,11 @@ import {
   pgEnum,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import { SCAN_JOB_STATUS } from '@/utils/constants';
+import { SCAN_JOB_STATUS, USER_SUBSCRIPTION_STATUS } from '@/utils/constants';
 
 // === ENUMS ===
 export const statusEnum = pgEnum('scan_job_status', SCAN_JOB_STATUS);
+export const userSubscriptionStatus = pgEnum('user_subscription_status', USER_SUBSCRIPTION_STATUS);
 
 // === AUTH SCHEMA ===
 
@@ -109,27 +110,6 @@ export const verifications = pgTable(
 
 // === APP SCHEMA ===
 
-export const newsletters = pgTable(
-  'newsletters',
-  {
-    id: text()
-      .primaryKey()
-      .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
-    name: text().notNull(),
-    address: text().notNull().unique(),
-    faviconUrl: text(),
-    unsubscribeUrl: text(),
-    rssUrl: text(),
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp()
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  (table) => [index('newsletters_address_idx').on(table.address)]
-);
-
 export const scanJobs = pgTable(
   'scan_jobs',
   {
@@ -147,10 +127,9 @@ export const scanJobs = pgTable(
     newslettersFoundCount: integer().notNull().default(0),
     currentPageToken: text(),
     discoveredNewsletters: jsonb()
-      .$type<Newsletter[]>()
+      .$type<DiscoveredNewsletter[]>()
       .default(sql`'[]'::jsonb`)
       .notNull(),
-    result: jsonb().$type<Newsletter[]>(),
     error: text(),
     startedAt: timestamp(),
     updatedAt: timestamp()
@@ -168,6 +147,57 @@ export const scanJobs = pgTable(
   ]
 );
 
+export const newslettersCatalog = pgTable(
+  'newsletters_catalog',
+  {
+    id: text()
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: text().notNull(),
+    address: text().notNull().unique(),
+    faviconUrl: text(),
+    description: text(),
+    categoryTags: jsonb().$type<string[]>(),
+    websiteUrl: text(),
+    rssFeedUrl: text(),
+    isPubliclyDiscoverable: boolean().default(false).notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index('newsletters_address_idx').on(table.address)]
+);
+
+export const userSubscriptions = pgTable(
+  'user_subscriptions',
+  {
+    id: text()
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text().notNull(),
+    newsletterId: text().notNull(),
+    status: userSubscriptionStatus().default('ACTIVE').notNull(),
+    unsubscribeUrl: text(),
+    customNameForUser: text(),
+    userTags: jsonb().$type<string[]>(),
+
+    //?  Can be used incase i implement re-scanning to check if the newsletter is still active amd the user is still subscribed
+    // firstDiscoveredInScanJobId: text(),
+    // lastConfirmedInScanJobId: text(),
+
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index('user_subscription_idx').on(table.userId, table.newsletterId)]
+);
+
 // === TYPE EXPORTS ===
 
 export type User = typeof users.$inferSelect;
@@ -179,8 +209,8 @@ export type NewAccount = typeof accounts.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 
-export type Newsletter = typeof newsletters.$inferSelect;
-export type NewNewsletter = typeof newsletters.$inferInsert;
+export type Newsletter = typeof newslettersCatalog.$inferSelect;
+export type NewNewsletter = typeof newslettersCatalog.$inferInsert;
 
 export type ScanJob = typeof scanJobs.$inferSelect;
 export type NewScanJob = typeof scanJobs.$inferInsert;

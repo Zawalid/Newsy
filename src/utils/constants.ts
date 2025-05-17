@@ -17,3 +17,4 @@ export const DEFAULT_SCAN_SETTINGS: ScanSettings = {
 };
 
 export const SCAN_JOB_STATUS = ['PREPARING', 'PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED'] as const;
+export const USER_SUBSCRIPTION_STATUS = ['ACTIVE', 'UNSUBSCRIBED_BY_USER', 'IGNORED_BY_USER'] as const;

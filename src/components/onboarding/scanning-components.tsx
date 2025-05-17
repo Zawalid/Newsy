@@ -38,7 +38,7 @@ export type ScanningStatusProps = {
     status: ScanStatus;
     timeRemaining: string;
     speed: number;
-    discoveredNewsletters: Newsletter[];
+    discoveredNewsletters: DiscoveredNewsletter[];
   };
   isStalled: boolean;
   onCancel: () => void;
@@ -311,7 +311,7 @@ export function NewsletterShowcase({
   discoveredNewsletters = [],
   isScanning = true,
 }: {
-  discoveredNewsletters: Newsletter[];
+  discoveredNewsletters: DiscoveredNewsletter[];
   isScanning?: boolean;
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -366,7 +366,7 @@ export function NewsletterShowcase({
   );
 }
 
-export function NewsletterItem({ newsletter }: { newsletter: Newsletter }) {
+export function NewsletterItem({ newsletter }: { newsletter: DiscoveredNewsletter }) {
   return (
     <div className='flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'>
       <div className='flex-shrink-0'>

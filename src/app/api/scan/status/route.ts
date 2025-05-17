@@ -57,7 +57,6 @@ export async function GET(request: Request) {
               totalEmailsToScan: true,
               newslettersFoundCount: true,
               error: true,
-              result: true,
               discoveredNewsletters: true,
               startedAt: true,
               completedAt: true,

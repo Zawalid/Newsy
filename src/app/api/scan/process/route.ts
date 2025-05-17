@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { scanJobs } from '@/db/schema';
+import { newslettersCatalog, scanJobs, userSubscriptions } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getGmailClient } from '@/lib/gmail/client';
 import { fetchEmailMetadataOnly } from '@/lib/gmail/operations';
@@ -10,11 +10,11 @@ import { DEFAULT_GMAIL_LIST_PAGE_SIZE, DEFAULT_CHUNK_SIZE } from '@/utils/consta
 const chunkArray = <T>(arr: T[], size: number): T[][] =>
   Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size));
 
-const mergeUniqueSenders = (existing: NewNewsletter[], newSenders: NewNewsletter[]): Newsletter[] => {
-  const uniqueMap = new Map<string, Newsletter>();
-  existing.forEach((n) => uniqueMap.set(n.address, n as Newsletter));
+const mergeUniqueSenders = (existing: DiscoveredNewsletter[], newSenders: DiscoveredNewsletter[]) => {
+  const uniqueMap = new Map<string, DiscoveredNewsletter>();
+  existing.forEach((n) => uniqueMap.set(n.address, n));
   newSenders.forEach((n) => {
-    if (!uniqueMap.has(n.address)) uniqueMap.set(n.address, n as Newsletter);
+    if (!uniqueMap.has(n.address)) uniqueMap.set(n.address, n);
     else {
       // Update existing entry if new one has more info
       const current = uniqueMap.get(n.address)!;
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
 
     const gmail = await getGmailClient(job.userId);
     if (!gmail) {
-      throw new Error('We couldn\'t access your Gmail account. Please check your Google permissions and try again.');
+      throw new Error("We couldn't access your Gmail account. Please check your Google permissions and try again.");
     }
 
     const listResponse = await gmail.users.messages.list({
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     const messageIds = messages.map((m) => m.id).filter((id): id is string => !!id);
 
     let processedInThisChunk = 0;
-    const newlyFoundSenders: NewNewsletter[] = [];
+    const newlyFoundSenders: DiscoveredNewsletter[] = [];
 
     if (messageIds.length > 0) {
       const metadataChunks = chunkArray(messageIds, DEFAULT_CHUNK_SIZE);
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
               const faviconUrl = getFaviconFromEmail(address);
 
               newlyFoundSenders.push({
-                id: address, 
+                id: address,
                 name: name || address,
                 address,
                 unsubscribeUrl,
@@ -147,14 +147,42 @@ export async function POST(request: Request) {
 
     if (isComplete) {
       updateData.status = 'COMPLETED';
-      updateData.result = discoveredNewsletters;
-      updateData.discoveredNewsletters = [];
+      // updateData.discoveredNewsletters = [];
       updateData.completedAt = new Date();
       console.log(
         `Job ${jobId}: Scan completed. Processed ${emailsProcessedCount} emails. Found ${discoveredNewsletters.length} newsletters.`
       );
+
+      if (discoveredNewsletters.length > 0 && job.userId) {
+        for (const newsletter of discoveredNewsletters) {
+          if (!newsletter.address) continue;
+
+          await db
+            .insert(newslettersCatalog)
+            .values({ name: newsletter.name, address: newsletter.address, faviconUrl: newsletter.faviconUrl })
+            .onConflictDoNothing()
+            .returning({ id: newslettersCatalog.id, name: newslettersCatalog.name });
+
+          const newCatalogEntry = await db.query.newslettersCatalog.findFirst({
+            where: eq(newslettersCatalog.address, newsletter.address),
+            columns: { id: true },
+          });
+
+          if (!newCatalogEntry || !newCatalogEntry.id) {
+            throw new Error(`Failed to insert newsletter ${newsletter.name} into the catalog.`);
+          }
+
+
+          await db
+            .insert(userSubscriptions)
+            .values({ userId: job.userId, newsletterId: newCatalogEntry.id, unsubscribeUrl: newsletter.unsubscribeUrl })
+            .onConflictDoNothing();
+
+          console.log(`Job ${jobId}: Added newsletter ${newsletter.name} to user ${job.userId}'s subscriptions and to the catalog.`);
+        }
+      }
     } else {
-      updateData.status = 'PENDING'; 
+      updateData.status = 'PENDING';
       console.log(
         `Job ${jobId}: Chunk processed. Processed ${emailsProcessedCount}/${job.totalEmailsToScan}. Found ${discoveredNewsletters.length}. Next page: ${!!nextPageToken}`
       );
@@ -170,50 +198,50 @@ export async function POST(request: Request) {
         body: JSON.stringify({ jobId }),
       }).catch((error) => {
         console.error(`Error triggering next chunk for job ${jobId}:`, error);
-        // Update the job with an error about continuation
         db.update(scanJobs)
-          .set({ 
+          .set({
             error: 'We had trouble processing all your emails. The scan results may be incomplete.',
-            status: 'FAILED'
+            status: 'FAILED',
           })
           .where(eq(scanJobs.id, jobId))
-          .catch(e => console.error('Failed to update job after continuation error:', e));
+          .catch((e) => console.error('Failed to update job after continuation error:', e));
       });
     }
 
-    return NextResponse.json({ 
-      message: isComplete 
-        ? 'Your scan has completed successfully. Showing all newsletters we found.' 
-        : 'Processing your emails. We\'ll continue to update as we find more newsletters.'
+    return NextResponse.json({
+      message: isComplete
+        ? 'Your scan has completed successfully. Showing all newsletters we found.'
+        : "Processing your emails. We'll continue to update as we find more newsletters.",
     });
   } catch (error: any) {
     console.error(`Error processing job ${jobId}:`, error);
-    
-    let userFriendlyMessage = 'We\'re having trouble scanning your inbox. Please try again later.';
-    
+
+    let userFriendlyMessage = "We're having trouble scanning your inbox. Please try again later.";
+
     // Provide more specific messages for common errors
     if (error.message?.includes('Gmail')) {
-      userFriendlyMessage = 'We couldn\'t access your Gmail account. Please check your Google permissions and try again.';
+      userFriendlyMessage =
+        "We couldn't access your Gmail account. Please check your Google permissions and try again.";
     } else if (error.message?.includes('rate limit') || error.message?.includes('quota')) {
-      userFriendlyMessage = 'We\'ve reached the limit for Gmail requests. Please wait a few minutes and try again.';
+      userFriendlyMessage = "We've reached the limit for Gmail requests. Please wait a few minutes and try again.";
     } else if (error.message?.includes('token') || error.message?.includes('auth')) {
       userFriendlyMessage = 'Your Google login has expired. Please sign in again to continue scanning.';
     }
-    
+
     if (job) {
       await db
         .update(scanJobs)
-        .set({ 
-          status: 'FAILED', 
-          error: userFriendlyMessage, 
+        .set({
+          status: 'FAILED',
+          error: userFriendlyMessage,
           updatedAt: new Date(),
-          completedAt: new Date()
+          completedAt: new Date(),
         })
         .where(eq(scanJobs.id, jobId));
     }
 
     return NextResponse.json(
-      { message: 'Your scan couldn\'t be completed.', error: userFriendlyMessage },
+      { message: "Your scan couldn't be completed.", error: userFriendlyMessage },
       { status: 200 }
     );
   }

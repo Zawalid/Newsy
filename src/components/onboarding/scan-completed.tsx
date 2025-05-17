@@ -15,7 +15,7 @@ interface ScanCompletedProps {
 export function ScanCompleted({ scanResponse, onViewNewsletters }: ScanCompletedProps) {
   const newslettersFound = scanResponse?.newslettersFoundCount || 0;
   const emailsProcessed = scanResponse?.emailsProcessedCount || 0;
-  const sampleNewsletters = scanResponse?.result?.slice(0, 4) || [];
+  const sampleNewsletters = scanResponse?.discoveredNewsletters.slice(0, 4) || [];
 
   if (newslettersFound === 0) {
     return <NoNewslettersFound emailsProcessed={emailsProcessed} onContinue={onViewNewsletters} />;

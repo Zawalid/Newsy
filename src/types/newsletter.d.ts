@@ -10,14 +10,13 @@ declare global {
     totalEmailsToScan: number;
     newslettersFoundCount: number;
     error?: string;
-    result?: Newsletter[];
-    discoveredNewsletters: Newsletter[];
+    discoveredNewsletters: DiscoveredNewsletter[];
     startedAt: string;
     updatedAt: string;
     completedAt?: string;
   };
 
-  interface ScanSettings {
+  type ScanSettings = {
     scanDepth: 'quick' | 'standard' | 'deep';
     smartFiltering: boolean;
     categories: {
@@ -27,5 +26,13 @@ declare global {
       updates: boolean;
       forums: boolean;
     };
-  }
+  };
+
+  type DiscoveredNewsletter = {
+    id: string;
+    name: string;
+    address: string;
+    faviconUrl: string | null;
+    unsubscribeUrl: string | null;
+  };
 }
