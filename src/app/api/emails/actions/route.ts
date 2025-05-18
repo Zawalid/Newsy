@@ -6,12 +6,13 @@ import {
   starEmail,
   unstarEmail,
 } from '@/lib/gmail/operations';
-// import { getUserIdFromSession } from '@/lib/auth';
+import { getUserIdFromSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
-  // TODO : Uncomment this when testing is done
-  // const userId = await getUserIdFromSession();
-  // if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const userId = await getUserIdFromSession();
+  if (!userId) {
+    return NextResponse.json({ success: false, error: { message: 'Unauthorized', code: 401 } }, { status: 401 });
+  }
 
   const { action, emailId, value } = await req.json();
 
@@ -39,15 +40,15 @@ export async function POST(req: NextRequest) {
         break;
 
       default:
-        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+        return NextResponse.json({ success: false, error: { message: 'Invalid action', code: 400 } }, { status: 400 });
     }
 
     if ('error' in result && result.error) {
-      return NextResponse.json({ error: result.error }, { status: 500 });
+      return NextResponse.json({ success: false, error: result.error }, { status: result.error.code || 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: { message: error.message, code: 500 } }, { status: 500 });
   }
 }

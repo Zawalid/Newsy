@@ -10,23 +10,23 @@ import { extractAddressInfo, getStatusFromLabels } from './utils';
 const performGmailOperation = async <T>(
   operation: (gmail: Gmail) => Promise<T>,
   userId?: string | null
-): Promise<APIResponse<T>> => {
+): Promise<APIResult<T>> => {
   try {
     const gmail = await getGmailClient(userId);
     const result = await operation(gmail);
 
-    if (result !== undefined) return { data: result };
-    else return { data: undefined }; // Or return { data: { success: true } } if preferred
+    if (result !== undefined) return { success: true, data: result };
+    else return { success: true, data: undefined };
   } catch (error: any) {
     console.error('Gmail Operation Error:', error);
-    return { error: handleGmailError(error) };
+    return { success: false, error: handleGmailError(error) };
   }
 };
 
 /**
  * Fetches and parses a single email by its ID.
  */
-export const fetchEmail = async (emailId: string): Promise<APIResponse<Email>> => {
+export const fetchEmail = async (emailId: string): Promise<APIResult<Email>> => {
   return performGmailOperation(async (gmail) => {
     const res = await gmail.users.messages.get({
       userId: 'me',
@@ -51,10 +51,7 @@ export const fetchEmail = async (emailId: string): Promise<APIResponse<Email>> =
 /**
  * Fetches only essential metadata for an email.
  */
-export const fetchEmailMetadataOnly = async (
-  id: string,
-  userId?: string | null
-): Promise<APIResponse<EmailMetadata>> => {
+export const fetchEmailMetadataOnly = async (id: string, userId?: string | null): Promise<APIResult<EmailMetadata>> => {
   return performGmailOperation(async (gmail) => {
     const res = await gmail.users.messages.get({
       userId: 'me',
@@ -92,7 +89,7 @@ export const fetchEmails = async (
   query: string | null,
   maxResults = DEFAULT_EMAILS_DISPLAYED,
   pageToken?: string
-): Promise<APIResponse<EmailsListResponse<EmailMetadata>>> => {
+): Promise<APIResult<EmailsListResponse<EmailMetadata>>> => {
   return performGmailOperation(async (gmail) => {
     const listRes = await gmail.users.messages.list({
       userId: 'me',
@@ -108,7 +105,8 @@ export const fetchEmails = async (
 
     const successfulEmails: EmailMetadata[] = [];
     results.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value.data) successfulEmails.push(result.value.data);
+      if (result.status === 'fulfilled' && result.value.success && result.value.data)
+        successfulEmails.push(result.value.data);
       else {
         console.warn(
           `Failed to fetch metadata for email ID ${messages[index].id}:`,
@@ -127,7 +125,7 @@ export const fetchEmails = async (
 /**
  * Gets the user's Gmail profile information.
  */
-export const getGmailProfile = async (): Promise<APIResponse<any>> => {
+export const getGmailProfile = async (): Promise<APIResult<any>> => {
   return performGmailOperation(async (gmail) => {
     const profile = await gmail.users.getProfile({ userId: 'me' });
     return profile.data;
@@ -141,7 +139,7 @@ export const modifyLabels = async (
   id: string,
   addLabelIds: string[] = [],
   removeLabelIds: string[] = []
-): Promise<APIResponse<void>> => {
+): Promise<APIResult<void>> => {
   return performGmailOperation(async (gmail) => {
     await gmail.users.messages.modify({
       userId: 'me',
@@ -154,14 +152,14 @@ export const modifyLabels = async (
 /**
  * Marks an email as READ or UNREAD by modifying labels.
  */
-export const markEmailAsReadOrUnread = async (id: string, as: 'UNREAD' | 'READ'): Promise<APIResponse<void>> => {
+export const markEmailAsReadOrUnread = async (id: string, as: 'UNREAD' | 'READ'): Promise<APIResult<void>> => {
   return as === 'UNREAD' ? modifyLabels(id, ['UNREAD'], []) : modifyLabels(id, [], ['UNREAD']);
 };
 
 /**
  * Moves an email to Trash or deletes it permanently. Returns void on success.
  */
-export const moveEmailToTrash = async (id: string, isPermanent: boolean = false): Promise<APIResponse<void>> => {
+export const moveEmailToTrash = async (id: string, isPermanent: boolean = false): Promise<APIResult<void>> => {
   return performGmailOperation(async (gmail) => {
     if (isPermanent) await gmail.users.messages.delete({ userId: 'me', id });
     else await gmail.users.messages.trash({ userId: 'me', id });
@@ -171,7 +169,7 @@ export const moveEmailToTrash = async (id: string, isPermanent: boolean = false)
 /**
  * Moves an email out of Trash. Returns void on success.
  */
-export const untrashEmail = async (id: string): Promise<APIResponse<void>> => {
+export const untrashEmail = async (id: string): Promise<APIResult<void>> => {
   return performGmailOperation(async (gmail) => {
     await gmail.users.messages.untrash({ userId: 'me', id });
   });
@@ -180,9 +178,9 @@ export const untrashEmail = async (id: string): Promise<APIResponse<void>> => {
 /**
  * Adds the STARRED label to an email.
  */
-export const starEmail = async (id: string): Promise<APIResponse<void>> => modifyLabels(id, ['STARRED'], []);
+export const starEmail = async (id: string): Promise<APIResult<void>> => modifyLabels(id, ['STARRED'], []);
 
 /**
  * Removes the STARRED label from an email.
  */
-export const unstarEmail = async (id: string): Promise<APIResponse<void>> => modifyLabels(id, [], ['STARRED']);
+export const unstarEmail = async (id: string): Promise<APIResult<void>> => modifyLabels(id, [], ['STARRED']);

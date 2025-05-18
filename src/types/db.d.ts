@@ -5,10 +5,12 @@ import type {
   NewAccount as NewAccountType,
   Session as SessionType,
   NewSession as NewSessionType,
-  Newsletter as NewsletterType,
-  NewNewsletter as NewNewsletterType,
   ScanJob as ScanJobType,
   NewScanJob as NewScanJobType,
+  Newsletter as NewsletterType,
+  NewNewsletter as NewNewsletterType,
+  UserSubscription as UserSubscriptionType,
+  NewUserSubscription as NewUserSubscriptionType,
 } from '@/db/schema';
 
 declare global {
@@ -24,13 +26,17 @@ declare global {
   type Session = SessionType;
   type NewSession = NewSessionType;
 
+  // ScanJob type
+  type ScanJob = ScanJobType;
+  type NewScanJob = NewScanJobType;
+
   // Newsletter type
   type Newsletter = NewsletterType & { category?: string };
   type NewNewsletter = NewNewsletterType;
 
-  // ScanJob type
-  type ScanJob = ScanJobType;
-  type NewScanJob = NewScanJobType;
+  // User Subscription type
+  type UserSubscription = UserSubscriptionType;
+  type NewUserSubscription = NewUserSubscriptionType;
 }
 
 export {};

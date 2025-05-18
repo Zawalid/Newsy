@@ -1,32 +1,7 @@
-import { DEFAULT_DEPTH_SIZES } from '@/utils/constants';
-import { useMutation } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-const startScanAPI = async (settings: ScanSettings): Promise<{ message: string; jobId: number }> => {
-  const res = await fetch('/api/scan/start', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ settings }),
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || 'Unable to start your inbox scan. Please try again.');
-  }
-  return res.json();
-};
-
-const cancelScanAPI = async (jobId: number): Promise<{ message: string; jobId: number }> => {
-  const res = await fetch('/api/scan/cancel', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jobId }),
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || 'Unable to cancel your scan. Please refresh the page and try again.');
-  }
-  return res.json();
-};
+import { useMutation } from '@tanstack/react-query';
+import { DEFAULT_DEPTH_SIZES } from '@/utils/constants';
+import { fetchAPI } from '@/utils/fetchAPI';
 
 const getInitialStatusForScan = (status: ScanStatus, settings?: Partial<ScanSettings>): ScanResponse => ({
   id: 0,
@@ -36,7 +11,7 @@ const getInitialStatusForScan = (status: ScanStatus, settings?: Partial<ScanSett
   startedAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
   totalEmailsToScan: DEFAULT_DEPTH_SIZES[settings?.scanDepth || 'standard'],
-  discoveredNewsletters : []
+  discoveredNewsletters: [],
 });
 
 export const useScanner = () => {
@@ -70,12 +45,22 @@ export const useScanner = () => {
   }, []);
 
   const startScanMutation = useMutation({
-    mutationFn: (settings: ScanSettings) => startScanAPI(settings),
-    onSuccess: (data, variables) => {
+    mutationFn: (settings: ScanSettings) => {
+      return fetchAPI<{ jobId: number }>('/api/scan/start', { method: 'POST', body: JSON.stringify({ settings }) });
+    },
+    onSuccess: (result, variables) => {
       resetScan();
-      setJobId(data.jobId);
-      setScanJobResponse({ ...getInitialStatusForScan('PENDING', variables), id: data.jobId });
-      setIsScanning(true);
+      if (result.success && result.data) {
+        setJobId(result.data.jobId);
+        setScanJobResponse({ ...getInitialStatusForScan('PENDING', variables), id: result.data.jobId });
+        setIsScanning(true);
+      }
+      if (!result.success) {
+        handleError(
+          result.error.message ||
+            "We couldn't start your scan. Please try again or contact support if the issue persists."
+        );
+      }
     },
     onError: (error: Error) => {
       handleError(
@@ -85,8 +70,19 @@ export const useScanner = () => {
   });
 
   const cancelScanMutation = useMutation({
-    mutationFn: (currentJobId: number) => cancelScanAPI(currentJobId),
-    onSuccess: () => handleError('Scan cancelled by user.', 'CANCELLED'),
+    mutationFn: (currentJobId: number) => {
+      return fetchAPI<{ jobId: number }>('/api/scan/cancel', {
+        method: 'POST',
+        body: JSON.stringify({ jobId: currentJobId }),
+      });
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        handleError('Scan cancelled by user.', 'CANCELLED');
+      } else {
+        handleError(result.error.message || "We couldn't cancel your scan. Please refresh the page and try again.");
+      }
+    },
     onError: (error: Error) =>
       handleError(error.message || "We couldn't cancel your scan. Please refresh the page and try again."),
   });

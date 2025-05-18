@@ -66,17 +66,6 @@ declare global {
     fromRaw: string;
   }
 
-  // API response interfaces
-  interface APIError {
-    message: string;
-    code?: number;
-  }
-
-  interface APIResponse<T> {
-    data?: T;
-    error?: APIError;
-  }
-
   interface EmailsListResponse<T = EmailMetadata> {
     emails: T[];
     nextPageToken?: string | null;

@@ -105,7 +105,7 @@ export default function OnboardingModal() {
       return <Scanning scanResponse={scanResponse!} onCancel={handleBack} />;
 
     if (scanResponse?.status === 'CANCELLED')
-      return <ScanCancelled onRestartScan={handleRestartScan} onGoToApp={handleSkipScanAndGoToApp} />;
+      return <ScanCancelled onRestartScan={handleRestartScan} onSkip={handleSkipScanAndGoToApp} />;
 
     if (scanCompletedSuccessfully) {
       return (

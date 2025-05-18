@@ -1,6 +1,4 @@
-// app/api/scan/status/route.ts
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { scanJobs } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -8,16 +6,20 @@ import { getUserIdFromSession } from '@/lib/auth';
 
 const getChunk = (event: string, data: any): string => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const jobId = searchParams.get('jobId');
   const userId = await getUserIdFromSession();
 
-  if (!jobId || isNaN(parseInt(jobId))) {
-    return NextResponse.json({ error: 'Missing or invalid jobId' }, { status: 400 });
-  }
+  if (!userId)
+    return NextResponse.json({ success: false, error: { message: 'Unauthorized', code: 401 } }, { status: 401 });
 
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!jobId || isNaN(parseInt(jobId))) {
+    return NextResponse.json(
+      { success: false, error: { message: 'Missing or invalid jobId', code: 400 } },
+      { status: 400 }
+    );
+  }
 
   const jobIdNum = parseInt(jobId);
 

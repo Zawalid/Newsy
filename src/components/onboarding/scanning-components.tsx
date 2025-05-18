@@ -52,10 +52,13 @@ export function PreparingStatus({ onCancel }: { onCancel: () => void }) {
   useEffect(() => {
     if (currentStep >= 3) return;
 
-    const timer = setTimeout(() => {
-      setCurrentStep((prev) => prev + 1);
-    }, 2500);
-
+    let timer: NodeJS.Timeout;
+    if (currentStep < 2) {
+      timer = setTimeout(() => {
+        setCurrentStep((prev) => prev + 1);
+      }, 2500);
+    }
+    // Never auto-complete the last step (currentStep === 2)
     return () => clearTimeout(timer);
   }, [currentStep]);
 

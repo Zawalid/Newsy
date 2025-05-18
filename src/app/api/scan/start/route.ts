@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { and, eq, notInArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { scanJobs } from '@/db/schema';
@@ -6,9 +6,10 @@ import { getUserIdFromSession } from '@/lib/auth';
 import { getGmailProfile } from '@/lib/gmail/operations';
 import { DEFAULT_DEPTH_SIZES, DEFAULT_SCAN_SETTINGS } from '@/utils/constants';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const userId = await getUserIdFromSession();
-  if (!userId) return NextResponse.json({ error: 'Please sign in to start a scan' }, { status: 401 });
+  if (!userId)
+    return NextResponse.json({ success: false, error: { message: 'Unauthorized', code: 401 } }, { status: 401 });
   const settings: ScanSettings = (await request.json()).settings || DEFAULT_SCAN_SETTINGS;
 
   const existingJob = await db.query.scanJobs.findFirst({
@@ -17,7 +18,12 @@ export async function POST(request: Request) {
   if (existingJob) {
     return NextResponse.json(
       {
-        error: 'You already have a scan in progress. You can view its status or cancel it before starting a new one.',
+        success: false,
+        error: {
+          message:
+            'You already have a scan in progress. You can view its status or cancel it before starting a new one.',
+          code: 409,
+        },
         jobId: existingJob.id,
       },
       { status: 409 }
@@ -26,10 +32,16 @@ export async function POST(request: Request) {
 
   try {
     const profile = await getGmailProfile();
-    if (profile.error || !profile.data) {
+    if (!profile.success) {
       console.error('Failed to get Gmail profile:', profile.error);
       return NextResponse.json(
-        { error: "We couldn't access your Gmail account. Please check your Google permissions and try again." },
+        {
+          success: false,
+          error: {
+            message: "We couldn't access your Gmail account. Please check your Google permissions and try again.",
+            code: 500,
+          },
+        },
         { status: 500 }
       );
     }
@@ -65,13 +77,10 @@ export async function POST(request: Request) {
         .catch((e) => console.error('Failed to mark job as failed after trigger error:', e));
     });
 
-    return NextResponse.json({
-      message: "Your scan has been started successfully. We'll show results as we find newsletters in your inbox.",
-      jobId,
-    });
+    return NextResponse.json({ success: true, data: { jobId, status: 'PENDING' } }, { status: 200 });
   } catch (error: any) {
     console.error('Error initiating scan:', error);
     const errorMessage = error.message || "We couldn't start your scan right now. Please try again later.";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json({ success: false, error: { message: errorMessage, code: 500 } }, { status: 500 });
   }
 }

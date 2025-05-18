@@ -1,4 +1,4 @@
-export const handleGmailError = (error: any): APIError => {
+export const handleGmailError = (error: any): APIError['error'] => {
   let message = 'An unknown error occurred accessing Gmail.';
   let code: number = 500; // Default code
 

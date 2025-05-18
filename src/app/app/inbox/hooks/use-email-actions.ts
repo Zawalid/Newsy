@@ -1,8 +1,8 @@
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { performEmailAction } from '@/lib/queries/emailsQueries';
 import { useEmailsSearchAndFilters } from './use-emails-search-filters';
+import { fetchAPI } from '@/utils/fetchAPI';
 
 type EmailUpdate = Partial<Pick<Email['status'], 'isRead' | 'isStarred' | 'isImportant'>>;
 
@@ -41,7 +41,7 @@ export function useEmailActions() {
 
     // For combined filters, we need to check if email would still match other filters
     if (filters.length > 1) {
-      const email = queryClient.getQueryData(['email', emailId]) as Email | undefined;
+      const email = queryClient.getQueryData<APISuccess<Email>>(['email', emailId])?.data;
       if (!email) return true; // If we can't find the email, assume we should remove
 
       const updatedEmail = { ...email, ...update };
@@ -69,33 +69,46 @@ export function useEmailActions() {
   const updateEmailsCache = (operation: 'add' | 'remove' | 'update', emailId: string, update?: EmailUpdate) => {
     // Common function to apply updates to different query keys
     const applyToQueryCache = (queryKey: any[]) => {
-      queryClient.setQueriesData({ queryKey }, (oldData: any) => {
-        if (!oldData?.emails) return oldData;
+      queryClient.setQueriesData<APIResult<EmailsListResponse<EmailMetadata>>>({ queryKey }, (oldData) => {
+        if (!oldData?.success) return oldData;
+        const emailsList = oldData?.data?.emails;
+        if (!emailsList) return oldData;
 
         if (operation === 'remove') {
           return {
             ...oldData,
-            emails: oldData.emails.filter((email: Email) => email.id !== emailId),
+            data: {
+              ...oldData.data,
+              emails: emailsList.filter((email) => email.id !== emailId),
+            },
           };
         } else if (operation === 'update') {
           return {
             ...oldData,
-            emails: oldData.emails.map((email: Email) => (email.id === emailId ? { ...email, ...update } : email)),
+            data: {
+              ...oldData.data,
+              emails: emailsList.map((email) =>
+                email.id === emailId ? { ...email, status: { ...email.status, ...update } } : email
+              ),
+            },
           };
         } else if (operation === 'add') {
-          // Get the email data if not in the cache already
-          const emailData = queryClient.getQueryData(['email', emailId]) as Email | undefined;
-          if (!emailData) return oldData;
+          const emailData = queryClient.getQueryData<APIResult<EmailMetadata>>(['email', emailId]);
+          const emailObj = emailData?.success ? emailData.data : null;
+          if (!emailObj) return oldData;
 
-          const updatedEmail = { ...emailData, ...update };
-
-          // Check if email already exists
-          const emailExists = oldData.emails.some((email: Email) => email.id === emailId);
+          const updatedEmail = { ...emailObj, status: { ...emailObj.status, ...update } };
+          const emailExists = emailsList.some((email) => email.id === emailId);
           if (emailExists) return oldData;
 
-          return { ...oldData, emails: [updatedEmail, ...oldData.emails] };
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              emails: [updatedEmail, ...emailsList],
+            },
+          };
         }
-
         return oldData;
       });
     };
@@ -108,9 +121,9 @@ export function useEmailActions() {
 
     // For individual email updates
     if (operation === 'update' && update) {
-      queryClient.setQueryData(['email', emailId], (oldData: any) => {
-        if (!oldData) return oldData;
-        return { ...oldData, ...update };
+      queryClient.setQueryData<APIResult<Email>>(['email', emailId], (oldData) => {
+        if (!oldData?.success) return oldData;
+        return { ...oldData, data: { ...oldData.data!, status: { ...oldData.data!.status, ...update } } };
       });
     }
   };
@@ -124,30 +137,26 @@ export function useEmailActions() {
     // Apply optimistic updates to cache
     if (update) updateEmailsCache('update', emailId, update);
 
-    console.log(action);
     // Check if email should be added or removed from current view
     if (shouldRemoveFromView(action, emailId, update) || action === 'moveToTrash') {
-      console.log('remove');
       updateEmailsCache('remove', emailId);
     } else if (update && shouldAddToView(action)) {
-      console.log('add');
       updateEmailsCache('add', emailId, update);
     }
 
     // Perform the server action
-    const result = await performEmailAction(action, emailId);
+    const result = await fetchAPI('/api/emails/actions', {
+      method: 'POST',
+      body: JSON.stringify({ action, emailId }),
+    });
 
     // Handle errors
-    if ('message' in result) {
-      toast.error(errorMessage || `Error performing action`, {
-        description: result.message,
-      });
+    if (result.success === false) {
+      toast.error(errorMessage || `Error performing action`, { description: String(result.error.message) });
 
       // Invalidate caches to ensure they're up to date
       queryClient.invalidateQueries({ queryKey: ['emails'] });
-      if (action !== 'moveToTrash') {
-        queryClient.invalidateQueries({ queryKey: ['email', emailId] });
-      }
+      if (action !== 'moveToTrash') queryClient.invalidateQueries({ queryKey: ['email', emailId] });
     }
 
     return result;

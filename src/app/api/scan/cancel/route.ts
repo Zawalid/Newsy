@@ -1,24 +1,30 @@
-import { NextResponse } from 'next/server';
+import {NextRequest, NextResponse } from 'next/server';
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/db';
 import { scanJobs } from '@/db/schema';
 import { getUserIdFromSession } from '@/lib/auth';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const userId = await getUserIdFromSession();
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ success: false, error: { message: 'Unauthorized', code: 401 } }, { status: 401 });
   }
 
   let payload: { jobId: number };
   try {
     payload = await request.json();
     if (typeof payload.jobId !== 'number') {
-      return NextResponse.json({ error: 'Invalid jobId provided' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: { message: 'Invalid jobId provided', code: 400 } },
+        { status: 400 }
+      );
     }
   } catch (error) {
     console.log(error);
-    return NextResponse.json({ error: 'Malformed request body' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: { message: 'Malformed request body', code: 400 } },
+      { status: 400 }
+    );
   }
 
   const { jobId } = payload;
@@ -29,11 +35,15 @@ export async function POST(request: Request) {
       columns: { status: true },
     });
 
-    if (!job) return NextResponse.json({ error: 'Scan job not found or access denied' }, { status: 404 });
+    if (!job)
+      return NextResponse.json(
+        { success: false, error: { message: 'Scan job not found or access denied', code: 404 } },
+        { status: 404 }
+      );
 
     if (job.status !== 'PENDING' && job.status !== 'PROCESSING') {
       return NextResponse.json(
-        { message: `Scan job is already ${job.status} and cannot be cancelled.` },
+        { success: false, error: { message: `Scan job is already ${job.status} and cannot be cancelled.`, code: 409 } },
         { status: 409 }
       );
     }
@@ -51,12 +61,18 @@ export async function POST(request: Request) {
       .returning({ id: scanJobs.id });
 
     if (!updatedJob) {
-      return NextResponse.json({ error: 'Failed to cancel scan job, or job already terminal.' }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: { message: 'Failed to cancel scan job, or job already terminal.', code: 500 } },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ message: 'Scan job cancelled successfully', jobId: updatedJob.id });
+    return NextResponse.json({ success: true, data: { jobId: updatedJob.id, status: 'CANCELLED' } }, { status: 200 });
   } catch (error: any) {
     console.error(`Error cancelling scan job ${jobId} for user ${userId}:`, error);
-    return NextResponse.json({ error: 'Failed to cancel scan job due to an internal error.' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: { message: 'Failed to cancel scan job due to an internal error.', code: 500 } },
+      { status: 500 }
+    );
   }
 }

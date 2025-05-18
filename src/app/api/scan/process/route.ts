@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { newslettersCatalog, scanJobs, userSubscriptions } from '@/db/schema';
+import { newslettersCatalog, scanJobs, users, userSubscriptions } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getGmailClient } from '@/lib/gmail/client';
 import { fetchEmailMetadataOnly } from '@/lib/gmail/operations';
@@ -44,11 +44,14 @@ const buildGmailQueryString = (categories?: ScanSettings['categories'] | null): 
   return queryParts.length > 0 ? queryParts.join(' ') : undefined;
 };
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const { jobId } = await request.json();
 
   if (!jobId || isNaN(parseInt(jobId))) {
-    return NextResponse.json({ error: 'Invalid scan ID provided. Please start a new scan.' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: { message: 'Invalid scan ID provided. Please start a new scan.', code: 400 } },
+      { status: 400 }
+    );
   }
 
   let job: ScanJob | undefined;
@@ -67,7 +70,13 @@ export async function POST(request: Request) {
         columns: { status: true },
       });
       console.log(`Current status of job ${jobId}: ${currentJob?.status || 'Not Found'}`);
-      return NextResponse.json({ message: 'Your scan is already being processed or has finished.' });
+      return NextResponse.json(
+        {
+          success: false,
+          error: { message: 'Your scan is already being processed or has finished.', code: 400 },
+        },
+        { status: 400 }
+      );
     }
     job = updatedJobs[0];
 
@@ -110,7 +119,7 @@ export async function POST(request: Request) {
 
           processedInThisChunk++;
 
-          if (result.status === 'fulfilled' && result.value.data) {
+          if (result.status === 'fulfilled' && result.value.success && result.value.data) {
             const emailMeta = result.value.data;
             if (isNewsletter(emailMeta, job.smartFiltering!)) {
               const { from, unsubscribeUrl = null } = emailMeta;
@@ -153,7 +162,14 @@ export async function POST(request: Request) {
         `Job ${jobId}: Scan completed. Processed ${emailsProcessedCount} emails. Found ${discoveredNewsletters.length} newsletters.`
       );
 
-      if (discoveredNewsletters.length > 0 && job.userId) {
+      if (!job.userId) {
+        return NextResponse.json(
+          { success: false, error: { message: 'User ID not found.', code: 500 } },
+          { status: 500 }
+        );
+      }
+
+      if (discoveredNewsletters.length > 0) {
         for (const newsletter of discoveredNewsletters) {
           if (!newsletter.address) continue;
 
@@ -172,15 +188,19 @@ export async function POST(request: Request) {
             throw new Error(`Failed to insert newsletter ${newsletter.name} into the catalog.`);
           }
 
-
           await db
             .insert(userSubscriptions)
             .values({ userId: job.userId, newsletterId: newCatalogEntry.id, unsubscribeUrl: newsletter.unsubscribeUrl })
             .onConflictDoNothing();
 
-          console.log(`Job ${jobId}: Added newsletter ${newsletter.name} to user ${job.userId}'s subscriptions and to the catalog.`);
+          console.log(
+            `Job ${jobId}: Added newsletter ${newsletter.name} to user ${job.userId}'s subscriptions and to the catalog.`
+          );
         }
       }
+
+      // Mark the user as onboarded anyways if they don't click on the cta button after the scan
+      await db.update(users).set({ hasOnboarded: true }).where(eq(users.id, job.userId));
     } else {
       updateData.status = 'PENDING';
       console.log(
@@ -209,9 +229,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      message: isComplete
-        ? 'Your scan has completed successfully. Showing all newsletters we found.'
-        : "Processing your emails. We'll continue to update as we find more newsletters.",
+      success: true,
+      data: { jobId, status: isComplete ? 'COMPLETED' : 'PROCESSING' },
+      status: isComplete ? 200 : 202,
     });
   } catch (error: any) {
     console.error(`Error processing job ${jobId}:`, error);
@@ -231,18 +251,10 @@ export async function POST(request: Request) {
     if (job) {
       await db
         .update(scanJobs)
-        .set({
-          status: 'FAILED',
-          error: userFriendlyMessage,
-          updatedAt: new Date(),
-          completedAt: new Date(),
-        })
+        .set({ status: 'FAILED', error: userFriendlyMessage, updatedAt: new Date(), completedAt: new Date() })
         .where(eq(scanJobs.id, jobId));
     }
 
-    return NextResponse.json(
-      { message: "Your scan couldn't be completed.", error: userFriendlyMessage },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: false, error: { message: userFriendlyMessage, code: 500 } }, { status: 500 });
   }
 }

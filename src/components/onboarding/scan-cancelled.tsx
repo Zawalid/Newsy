@@ -7,10 +7,10 @@ import { useTheme } from 'next-themes';
 
 interface ScanCancelledProps {
   onRestartScan: () => void;
-  onGoToApp: () => void;
+  onSkip: () => void;
 }
 
-export function ScanCancelled({ onRestartScan, onGoToApp }: ScanCancelledProps) {
+export function ScanCancelled({ onRestartScan, onSkip }: ScanCancelledProps) {
   return (
     <div className='flex max-w-5xl flex-col items-center gap-12 text-center md:flex-row'>
       <div className='flex flex-1 justify-center'>
@@ -61,7 +61,7 @@ export function ScanCancelled({ onRestartScan, onGoToApp }: ScanCancelledProps) 
           <Button onClick={onRestartScan} className='bg-blue-600 hover:bg-blue-700'>
             <RotateCcw className='mr-2 h-4 w-4' /> Start Scan Again
           </Button>
-          <Button variant='outline' onClick={onGoToApp}>
+          <Button variant='outline' onClick={onSkip}>
             <SkipForward className='mr-2 h-4 w-4' /> Skip to App
           </Button>
         </motion.div>
@@ -71,38 +71,38 @@ export function ScanCancelled({ onRestartScan, onGoToApp }: ScanCancelledProps) 
 }
 
 function CancelledIllustration() {
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === "dark"
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
 
-  const bgColor = isDark ? "#334155" : "#f8fafc"
-  const accentColor = isDark ? "#f87171" : "#ef4444"
-  const secondaryColor = isDark ? "#94a3b8" : "#64748b"
+  const bgColor = isDark ? '#334155' : '#f8fafc';
+  const accentColor = isDark ? '#f87171' : '#ef4444';
+  const secondaryColor = isDark ? '#94a3b8' : '#64748b';
 
   return (
     <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="w-full max-w-md"
+      className='w-full max-w-md'
     >
-      <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="200" cy="150" r="100" fill={bgColor} />
+      <svg viewBox='0 0 400 300' fill='none' xmlns='http://www.w3.org/2000/svg'>
+        <circle cx='200' cy='150' r='100' fill={bgColor} />
 
         {/* X mark */}
         <motion.path
-          d="M150 100 L250 200"
+          d='M150 100 L250 200'
           stroke={accentColor}
-          strokeWidth="12"
-          strokeLinecap="round"
+          strokeWidth='12'
+          strokeLinecap='round'
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         />
         <motion.path
-          d="M250 100 L150 200"
+          d='M250 100 L150 200'
           stroke={accentColor}
-          strokeWidth="12"
-          strokeLinecap="round"
+          strokeWidth='12'
+          strokeLinecap='round'
           initial={{ pathLength: 0, opacity: 0 }}
           animate={{ pathLength: 1, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
@@ -110,12 +110,12 @@ function CancelledIllustration() {
 
         {/* Circle around X */}
         <motion.circle
-          cx="200"
-          cy="150"
-          r="80"
+          cx='200'
+          cy='150'
+          r='80'
           stroke={secondaryColor}
-          strokeWidth="4"
-          strokeDasharray="4 6"
+          strokeWidth='4'
+          strokeDasharray='4 6'
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 1 }}
@@ -127,12 +127,12 @@ function CancelledIllustration() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          <circle cx="150" cy="90" r="6" fill={secondaryColor} />
-          <circle cx="250" cy="90" r="6" fill={secondaryColor} />
-          <circle cx="150" cy="210" r="6" fill={secondaryColor} />
-          <circle cx="250" cy="210" r="6" fill={secondaryColor} />
+          <circle cx='150' cy='90' r='6' fill={secondaryColor} />
+          <circle cx='250' cy='90' r='6' fill={secondaryColor} />
+          <circle cx='150' cy='210' r='6' fill={secondaryColor} />
+          <circle cx='250' cy='210' r='6' fill={secondaryColor} />
         </motion.g>
       </svg>
     </motion.div>
-  )
+  );
 }

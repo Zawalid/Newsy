@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 interface InboxProps {
   children: React.ReactNode;
   defaultLayout: number[] | undefined;
-  placeholderData: EmailsListResponse | undefined;
+  placeholderData: APIResult<EmailsListResponse>;
 }
 
 export default function Inbox({
@@ -62,7 +62,7 @@ export default function Inbox({
         onCollapse={() => setIsCollapsed(true)}
         onExpand={() => setIsCollapsed(false)}
       >
-        <div className="flex h-full flex-col gap-y-3 p-3 [&>div]:min-w-[300px]">
+        <div className="flex h-full flex-col gap-y-3 p-3 [&>div]:min-w-[345px]">
           <FilterTabs filters={filters} setFilters={setFilters} />
           <Separator />
           <div className="flex flex-col gap-3" ref={parent}>

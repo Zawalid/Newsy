@@ -9,7 +9,6 @@ export function OnboardingController() {
 
   const shouldShowModal = !!session.data && !hasOnboarded && !hasSkippedOnboardingScan;
 
-  console.log(shouldShowModal)
 
   return shouldShowModal ? <OnboardingModal /> : null;
 }

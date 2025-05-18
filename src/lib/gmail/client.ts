@@ -3,7 +3,6 @@ import { getSession } from '@/lib/auth';
 import { getAccountByUserId } from '@/data-access/users';
 import { env } from '@/env';
 
-// TODO : REMOVE THIS !!!! AFTER YOU FINISH THE TESTS
 export const getGmailClient = async (userId?: string | null) => {
   const session = await getSession();
 

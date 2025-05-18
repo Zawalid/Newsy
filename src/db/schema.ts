@@ -209,8 +209,11 @@ export type NewAccount = typeof accounts.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 
+export type ScanJob = typeof scanJobs.$inferSelect;
+export type NewScanJob = typeof scanJobs.$inferInsert;
+
 export type Newsletter = typeof newslettersCatalog.$inferSelect;
 export type NewNewsletter = typeof newslettersCatalog.$inferInsert;
 
-export type ScanJob = typeof scanJobs.$inferSelect;
-export type NewScanJob = typeof scanJobs.$inferInsert;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type NewUserSubscription = typeof userSubscriptions.$inferInsert;
