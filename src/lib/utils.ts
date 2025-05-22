@@ -33,3 +33,21 @@ export const usesTauri = () => {
 };
 
 export const sanitize = (html: string) => DOMPurify.sanitize(html);
+
+export const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2);
+};
+
+export const formatDate = (date: Date | null | undefined) => {
+  if (!date) return 'N/A';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+};

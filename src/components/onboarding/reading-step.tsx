@@ -1,9 +1,9 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from "next-themes";
+import { useTheme } from 'next-themes';
 
 interface ReadingStepProps {
   onNext: () => void;
@@ -39,8 +39,8 @@ export function ReadingStep({ onNext, onBack }: ReadingStepProps) {
           transition={{ delay: 0.3, duration: 0.5 }}
           className='mb-8 text-lg text-slate-600 dark:text-slate-300'
         >
-          Enjoy your favorite newsletters in Newsy&apos;s clean reading interface, away from the clutter
-          of your main inbox. Customize your reading experience!
+          Enjoy your favorite newsletters in Newsy&apos;s clean reading interface, away from the clutter of your main
+          inbox. Customize your reading experience!
         </motion.p>
 
         <motion.div
@@ -67,25 +67,19 @@ export function ReadingStep({ onNext, onBack }: ReadingStepProps) {
             <div className='flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50'>
               <CheckCircle className='h-4 w-4 text-blue-600 dark:text-blue-400' />
             </div>
-            <span className='text-sm text-slate-700 dark:text-slate-300'>
-              Distraction-free reading environment
-            </span>
+            <span className='text-sm text-slate-700 dark:text-slate-300'>Distraction-free reading environment</span>
           </div>
           <div className='flex items-center gap-2'>
             <div className='flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50'>
               <CheckCircle className='h-4 w-4 text-blue-600 dark:text-blue-400' />
             </div>
-            <span className='text-sm text-slate-700 dark:text-slate-300'>
-              Customizable font size and theme
-            </span>
+            <span className='text-sm text-slate-700 dark:text-slate-300'>Customizable font size and theme</span>
           </div>
           <div className='flex items-center gap-2'>
             <div className='flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50'>
               <CheckCircle className='h-4 w-4 text-blue-600 dark:text-blue-400' />
             </div>
-            <span className='text-sm text-slate-700 dark:text-slate-300'>
-              Save articles for later reading
-            </span>
+            <span className='text-sm text-slate-700 dark:text-slate-300'>Save articles for later reading</span>
           </div>
         </motion.div>
       </div>

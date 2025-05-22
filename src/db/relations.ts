@@ -36,19 +36,20 @@ export const scanJobsRelations = relations(scanJobs, ({ one }) => ({
   }),
 }));
 
+export const newslettersCatalogRelations = relations(newslettersCatalog, ({ many }) => ({
+  userSubscriptions: many(userSubscriptions, { relationName: 'userSubscriptionsNewsletters' }),
+}));
+
 export const userSubscriptionsRelations = relations(userSubscriptions, ({ one }) => ({
   user: one(users, {
     fields: [userSubscriptions.userId],
     references: [users.id],
-    relationName: 'userSubscriptionOwner',
+    relationName: 'userSubscriptions',
   }),
   newsletter: one(newslettersCatalog, {
     fields: [userSubscriptions.newsletterId],
     references: [newslettersCatalog.id],
-    relationName: 'userSubscriptionNewsletter',
+    relationName: 'userSubscriptionsNewsletters',
   }),
 }));
 
-export const newslettersCatalogRelations = relations(newslettersCatalog, ({ many }) => ({
-  userSubscriptions: many(userSubscriptions, { relationName: 'userSubscriptionsNewsletters' }),
-}));

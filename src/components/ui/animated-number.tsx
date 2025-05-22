@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { motion, useMotionValue, useTransform, animate, Easing } from 'motion/react';
+import { motion, useMotionValue, useTransform, animate, Easing } from 'framer-motion';
 
 export function useAnimatedValue<T>(
   initialValue: number = 0,

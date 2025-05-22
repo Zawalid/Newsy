@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -43,7 +43,7 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
           transition={{ delay: 0.4, duration: 0.5 }}
         >
           <Button onClick={onNext} effect='shine' size='lg' icon={ArrowRight} iconPlacement='right'>
-            Show Me How 
+            Show Me How
           </Button>
         </motion.div>
 

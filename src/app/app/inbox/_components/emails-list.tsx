@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { EmailsListSkeleton } from './loading-skeletons';
 import { useQueryState } from 'nuqs';
+import { HoverEffect } from '@/components/ui/hover-effect';
 
 function renderEmptyState(filter: string, query: string) {
   const emptyState: Record<string, { alt: string; heading: string; description: string }> = {
@@ -74,13 +75,13 @@ export function EmailsList({ emails, isLoading, filter }: EmailsListProps) {
     <ScrollArea className='h-[calc(100vh-220px)] flex-1'>
       <div className='flex flex-col gap-2' ref={parent}>
         {emails.map((email) => (
-          <Link
-            href={`/app/inbox/${email.id}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
+          <HoverEffect
             key={email.id}
-            className={cn(
-              'hover:bg-accent flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all',
-              id === email.id && 'bg-muted'
-            )}
+            alwaysActive={id === email.id}
+            disableTranslate
+            as={Link}
+            href={`/app/inbox/${email.id}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`}
+            className='flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all'
           >
             <div className='flex w-full flex-col gap-1'>
               <div className='flex items-center'>
@@ -116,7 +117,7 @@ export function EmailsList({ emails, isLoading, filter }: EmailsListProps) {
                   </span>
                 ))}
             </div>
-          </Link>
+          </HoverEffect>
         ))}
       </div>
     </ScrollArea>

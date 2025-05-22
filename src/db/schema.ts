@@ -179,7 +179,7 @@ export const userSubscriptions = pgTable(
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
     userId: text().notNull(),
-    newsletterId: text().notNull(),
+    newsletterId: text().notNull().unique(),
     status: userSubscriptionStatus().default('ACTIVE').notNull(),
     unsubscribeUrl: text(),
     customNameForUser: text(),
@@ -217,3 +217,4 @@ export type NewNewsletter = typeof newslettersCatalog.$inferInsert;
 
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type NewUserSubscription = typeof userSubscriptions.$inferInsert;
+

@@ -19,7 +19,6 @@ interface ScanSettingsProps {
   onSaveSettings: (settings: ScanSettings) => void;
 }
 
-
 const SCAN_DEPTH_OPTIONS = [
   { value: 'quick', label: 'Quick Look', description: 'Recent ~1,000 emails. Fastest.', recommended: false },
   { value: 'standard', label: 'Standard Scan', description: 'Recent ~3,000 emails. Good balance.', recommended: true },
@@ -73,7 +72,7 @@ export function ScanSettings({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className='flex flex-col w-[calc(100vw-2rem)] max-w-md sm:max-w-lg'>
+      <SheetContent className='flex w-[calc(100vw-2rem)] max-w-md flex-col sm:max-w-lg'>
         <SheetHeader className='border-b pb-4 dark:border-slate-800'>
           <SheetTitle className='text-xl font-semibold'>Scan Settings</SheetTitle>
           <SheetDescription>
@@ -91,7 +90,7 @@ export function ScanSettings({
                   <TooltipTrigger asChild>
                     <Info className='h-4 w-4 cursor-help text-slate-400 hover:text-slate-600 dark:hover:text-slate-200' />
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className='bg-secondary'>
                     <p className='max-w-[250px] text-xs'>
                       How many recent emails to check. Deeper scans are more thorough but take longer.
                     </p>
@@ -162,7 +161,7 @@ export function ScanSettings({
                   <TooltipTrigger asChild>
                     <Info className='h-4 w-4 cursor-help text-slate-400 hover:text-slate-600 dark:hover:text-slate-200' />
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className='bg-secondary'>
                     <p className='max-w-[250px] text-xs'>
                       Choose which Gmail tabs to scan. Newsletters often appear in Primary and Promotions.
                     </p>
@@ -204,7 +203,7 @@ export function ScanSettings({
           <Button variant='outline' onClick={handleCancel} className='w-full sm:w-auto'>
             Cancel
           </Button>
-          <Button onClick={handleSaveChanges} effect="shineHover">
+          <Button onClick={handleSaveChanges} effect='shineHover'>
             Save Changes
           </Button>
         </SheetFooter>

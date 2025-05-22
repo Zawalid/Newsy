@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowRight, Search, Info, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -122,4 +122,3 @@ export function NoNewslettersFound({ emailsProcessed, onContinue }: NoNewsletter
     </div>
   );
 }
-

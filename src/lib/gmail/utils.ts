@@ -1,4 +1,3 @@
-
 export const extractAddressInfo = (from: string): AddressBody => {
   // Common patterns: "Name <address@domain.com>" or "address@domain.com (Name)"
   const anglePattern = /^([^<]+)<([^>]+)>$/;
@@ -58,13 +57,53 @@ export const formatEmailText = (text: string) => {
   return linked.replace(/(\s*https?:\/\/[^\s]+)/g, '\n$1\n');
 };
 
-export const getFaviconFromEmail = (emailAddress: string): string | null => {
+export const getFaviconFromAddress = (emailAddress: string): string | null => {
   const match = emailAddress.match(/@([^@]+)$/);
   const domain = match ? match[1] : null;
 
   if (!domain) return null;
 
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+};
+
+export const getWebsiteUrlFromAddress = (emailAddress: string): string | null => {
+  const match = emailAddress.match(/@([^@]+)$/);
+  const fullDomain = match ? match[1] : null;
+
+  if (!fullDomain) return null;
+
+  // Extract the main domain by getting the last two parts (or last part for TLDs like .dev)
+  const domainParts = fullDomain.split('.');
+  let mainDomain;
+
+  if (domainParts.length >= 2) {
+    // For common TLDs like .com, .org, .net, we want the last two parts
+    if (domainParts.length > 2) {
+      // Check for country-specific or special TLDs like .co.uk, .com.au
+      const lastPart = domainParts[domainParts.length - 1];
+      const secondLastPart = domainParts[domainParts.length - 2];
+
+      if (
+        (secondLastPart === 'co' || secondLastPart === 'com') &&
+        lastPart.length === 2 &&
+        /^[a-z]{2}$/.test(lastPart)
+      ) {
+        // For formats like example.co.uk, take the last three parts
+        mainDomain = domainParts.slice(-3).join('.');
+      } else {
+        // Standard format like mail.example.com, take the last two parts
+        mainDomain = domainParts.slice(-2).join('.');
+      }
+    } else {
+      // Already in the format example.com
+      mainDomain = fullDomain;
+    }
+  } else {
+    // Single-part domain (unlikely but possible)
+    mainDomain = fullDomain;
+  }
+
+  return `https://${mainDomain}`;
 };
 
 export const isNewsletter = (email: EmailMetadata, useSmartFilter: boolean): boolean => {
@@ -183,4 +222,3 @@ export const isNewsletter = (email: EmailMetadata, useSmartFilter: boolean): boo
 
   return false;
 };
-

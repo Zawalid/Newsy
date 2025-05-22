@@ -31,11 +31,15 @@ declare global {
   type NewScanJob = NewScanJobType;
 
   // Newsletter type
-  type Newsletter = NewsletterType & { category?: string };
+  type Newsletter = NewsletterType;
   type NewNewsletter = NewNewsletterType;
 
   // User Subscription type
   type UserSubscription = UserSubscriptionType;
+  type UserSubscriptionWithNewsletter = UserSubscription & { newsletter: Newsletter } & {
+    isRead: boolean;
+    isFavorite: boolean;
+  };
   type NewUserSubscription = NewUserSubscriptionType;
 }
 

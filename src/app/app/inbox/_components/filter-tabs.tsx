@@ -1,17 +1,11 @@
-import React, {
-  useRef,
-  useEffect,
-  useState,
-  SetStateAction,
-  Dispatch,
-} from "react";
-import { motion } from "motion/react";
+import React, { useRef, useEffect, useState, SetStateAction, Dispatch } from 'react';
+import { motion } from 'framer-motion';
 
 const FILTER_OPTIONS = [
-  { value: "is:unread", label: "Unread" },
-  { value: "is:read", label: "Read" },
-  { value: "is:important", label: "Important" },
-  { value: "is:starred", label: "Starred" },
+  { value: 'is:unread', label: 'Unread' },
+  { value: 'is:read', label: 'Read' },
+  { value: 'is:important', label: 'Important' },
+  { value: 'is:starred', label: 'Starred' },
 ];
 
 export function FilterTabs({
@@ -28,9 +22,7 @@ export function FilterTabs({
 
   const toggleFilter = (filter: string) => {
     setFilters((prev) => {
-      const newFilters = prev.includes(filter)
-        ? prev.filter((f) => f !== filter)
-        : [...prev, filter];
+      const newFilters = prev.includes(filter) ? prev.filter((f) => f !== filter) : [...prev, filter];
 
       return newFilters.length === FILTER_OPTIONS.length ? [] : newFilters;
     });
@@ -38,8 +30,7 @@ export function FilterTabs({
 
   useEffect(() => {
     const updateRects = () => {
-      if (containerRef.current)
-        setContainerRect(containerRef.current.getBoundingClientRect());
+      if (containerRef.current) setContainerRect(containerRef.current.getBoundingClientRect());
 
       const activeTabs = tabsRef.current.filter((tab, index) => {
         if (index === 0) return filters.length === 0;
@@ -55,10 +46,10 @@ export function FilterTabs({
 
     const abortController = new AbortController();
 
-    window.addEventListener("panels-resized", updateRects, {
+    window.addEventListener('panels-resized', updateRects, {
       signal: abortController.signal,
     });
-    window.addEventListener("resize", updateRects, {
+    window.addEventListener('resize', updateRects, {
       signal: abortController.signal,
     });
 
@@ -68,13 +59,10 @@ export function FilterTabs({
   }, [filters]);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative flex w-full gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800"
-    >
+    <div ref={containerRef} className='relative flex w-full gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800'>
       {activeTabRect && containerRect && (
         <motion.div
-          className="absolute top-0 z-0 rounded-md bg-white shadow-xs dark:bg-zinc-700"
+          className='absolute top-0 z-0 rounded-md bg-white shadow-xs dark:bg-zinc-700'
           initial={false}
           animate={{
             x: activeTabRect.left - containerRect.left - 4,
@@ -84,7 +72,7 @@ export function FilterTabs({
             scale: filters.length > 1 ? [1, 1.02, 1] : 1,
           }}
           transition={{
-            type: "spring",
+            type: 'spring',
             stiffness: 400,
             damping: 30,
           }}
@@ -97,8 +85,8 @@ export function FilterTabs({
         }}
         className={`relative z-10 flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
           filters.length === 0
-            ? "bg-white text-zinc-900 dark:bg-zinc-700 dark:text-white"
-            : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            ? 'bg-white text-zinc-900 dark:bg-zinc-700 dark:text-white'
+            : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
         } `}
         onClick={() => setFilters([])}
       >
@@ -113,8 +101,8 @@ export function FilterTabs({
           }}
           className={`relative z-10 flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
             filters.includes(value)
-              ? "bg-white text-zinc-900 dark:bg-zinc-700 dark:text-white"
-              : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              ? 'bg-white text-zinc-900 dark:bg-zinc-700 dark:text-white'
+              : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
           } `}
           onClick={() => toggleFilter(value)}
         >

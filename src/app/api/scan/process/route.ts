@@ -4,7 +4,7 @@ import { newslettersCatalog, scanJobs, users, userSubscriptions } from '@/db/sch
 import { eq, and } from 'drizzle-orm';
 import { getGmailClient } from '@/lib/gmail/client';
 import { fetchEmailMetadataOnly } from '@/lib/gmail/operations';
-import { getFaviconFromEmail, isNewsletter } from '@/lib/gmail/utils';
+import { getFaviconFromAddress, getWebsiteUrlFromAddress, isNewsletter } from '@/lib/gmail/utils';
 import { DEFAULT_GMAIL_LIST_PAGE_SIZE, DEFAULT_CHUNK_SIZE } from '@/utils/constants';
 
 const chunkArray = <T>(arr: T[], size: number): T[][] =>
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
               const { from, unsubscribeUrl = null } = emailMeta;
               const { name, address } = from;
 
-              const faviconUrl = getFaviconFromEmail(address);
+              const faviconUrl = getFaviconFromAddress(address);
 
               newlyFoundSenders.push({
                 id: address,
@@ -175,7 +175,12 @@ export async function POST(request: NextRequest) {
 
           await db
             .insert(newslettersCatalog)
-            .values({ name: newsletter.name, address: newsletter.address, faviconUrl: newsletter.faviconUrl })
+            .values({
+              name: newsletter.name,
+              address: newsletter.address,
+              faviconUrl: newsletter.faviconUrl,
+              websiteUrl : getWebsiteUrlFromAddress(newsletter.address),
+            })
             .onConflictDoNothing()
             .returning({ id: newslettersCatalog.id, name: newslettersCatalog.name });
 

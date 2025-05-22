@@ -1,9 +1,9 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from "next-themes";
+import { useTheme } from 'next-themes';
 
 interface UnsubscribeStepProps {
   onNext: () => void;
@@ -36,8 +36,8 @@ export function UnsubscribeStep({ onNext, onBack }: UnsubscribeStepProps) {
           transition={{ delay: 0.3, duration: 0.5 }}
           className='mb-8 text-lg text-slate-600 dark:text-slate-300'
         >
-          Tired of unwanted emails? Newsy finds the unsubscribe links and handles one-click unsubscribes
-          for many senders, making it effortless to clean your inbox.
+          Tired of unwanted emails? Newsy finds the unsubscribe links and handles one-click unsubscribes for many
+          senders, making it effortless to clean your inbox.
         </motion.p>
 
         <motion.div
@@ -46,7 +46,7 @@ export function UnsubscribeStep({ onNext, onBack }: UnsubscribeStepProps) {
           transition={{ delay: 0.4, duration: 0.5 }}
           className='flex gap-3'
         >
-           <Button className='px-5' onClick={onBack} iconPlacement='left' icon={ArrowLeft} variant='outline'>
+          <Button className='px-5' onClick={onBack} iconPlacement='left' icon={ArrowLeft} variant='outline'>
             Back
           </Button>
           <Button className='px-5' onClick={onNext} iconPlacement='right' icon={ArrowRight}>

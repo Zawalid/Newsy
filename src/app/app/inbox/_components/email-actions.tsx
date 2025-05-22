@@ -12,7 +12,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { useEmailActions } from '@/app/app/inbox/hooks/use-email-actions';
+import { useEmailActions } from '@/app/app/inbox/_hooks/use-email-actions';
 import { useAlert } from '@/hooks/use-alert';
 import { useRouter } from 'next/navigation';
 

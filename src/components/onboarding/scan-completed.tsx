@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { ArrowRight, Info, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -108,7 +108,7 @@ export function ScanCompleted({ scanResponse, onViewNewsletters }: ScanCompleted
             onClick={onViewNewsletters}
             className='ml-auto rounded-xl bg-blue-600 px-8 py-3 text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-md'
           >
-            Explore My Newsletters <ArrowRight className='ml-2 h-4 w-4' />
+            Explore My Subscriptions <ArrowRight className='ml-2 h-4 w-4' />
           </Button>
         </motion.div>
       </div>

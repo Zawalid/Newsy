@@ -12,7 +12,10 @@ export async function GET() {
 
   const subscriptions = await db.query.userSubscriptions.findMany({
     where: eq(userSubscriptions.userId, userId),
+    with: { newsletter: true },
   });
+
+  console.log(subscriptions.length);
 
   if (!subscriptions) {
     return NextResponse.json(

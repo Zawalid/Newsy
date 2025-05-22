@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'framer-motion';
 import { PreparingStatus, ScanningStatus } from './scanning-components';
 import {
   formatTimeCompact,
