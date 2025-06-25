@@ -4,6 +4,11 @@
   <p align="center">
     An intelligent newsletter hub that scans your Gmail to automatically organize, read, and manage your subscriptions in one place.
   </p>
+  <div align="center">
+  <a href="https://news-y.vercel.app" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Live_Demo-Visit_Site-blue?style=for-the-badge&logo=rocket" alt="Live Demo"/>
+  </a>
+</div>
   <br />
 </div>
 
@@ -56,6 +61,19 @@ This project uses a cutting-edge, full-stack, and cross-platform technology stac
 | **Cross-Platform**      | <img src="https://skillicons.dev/icons?i=tauri" alt="Tauri" width="24" style="vertical-align: middle; margin-right: 5px;"> **Tauri** for packaging the Next.js application into a lightweight, native desktop app for Windows, macOS, and Linux. |
 | **Authentication & APIs** | <img src="https://skillicons.dev/icons?i=google" alt="Google API" width="24" style="vertical-align: middle; margin-right: 5px;"> **Google API (Gmail)** for scanning emails, with user authentication managed by **Better Auth**. |
 | **Tooling & Quality**   | <img src="https://skillicons.dev/icons?i=vite" alt="Vite" width="24" style="vertical-align: middle; margin-right: 5px;"> **Turbopack (via Next.js)** for a blazing-fast development experience, with <img src="https://skillicons.dev/icons?i=eslint" alt="ESLint" width="24" style="vertical-align: middle; margin-right: 5px;"> **ESLint** & <img src="https://skillicons.dev/icons?i=prettier" alt="Prettier" width="24" style="vertical-align: middle; margin-right: 5px;"> **Prettier**. |
+
+---
+
+### **🌟 Future Features**
+
+While the core functionality is robust, there is a clear vision for expanding Newsy into an even more powerful and universally accessible platform.
+
+| Feature Area                      | Planned Enhancements                                                                                                                                                                     |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Broader Email Support**         | Expand beyond Gmail by integrating with **Outlook/Microsoft 365** and eventually adding generic **IMAP** support, making Newsy accessible to users on any email platform.                  |
+| **AI & Content Intelligence**     | Introduce **AI-powered summaries** for long-form newsletters, implement automated content-based tagging for better organization, and enable powerful **full-text search** across all emails. |
+| **Enhanced Reading Experience**   | Develop a "Read-It-Later" feature for saving important articles, allow for in-article highlighting and note-taking, and integrate **text-to-speech** for hands-free listening.           |
+| **Platform & Ecosystem Expansion**| Create a **browser extension** for one-click subscribing on the web and develop a dedicated **mobile application** (e.g., with React Native) for a seamless on-the-go reading experience.    |
 
 ---
 
